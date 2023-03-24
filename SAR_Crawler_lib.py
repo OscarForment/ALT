@@ -96,8 +96,7 @@ class SAR_Wiki_Crawler:
                 "div#mw-content-text h4,"
                 "div#mw-content-text p,"
                 "div#mw-content-text ul,"
-                "div#mw-content-text li,"
-                "div#mw-content-text span"
+                "div#mw-content-text li"
             ))
             text = "\n".join(
                 self.section_format.get(element.name, "{}").format(element.text)
@@ -202,7 +201,7 @@ class SAR_Wiki_Crawler:
         # URLs en cola
         to_process = set(initial_urls)
         # Direcciones a visitar
-        queue = [(0, "", url) for url in initial_urls]
+        queue = [(0, "", url) for url in to_process]
         hq.heapify(queue)
         # Buffer de documentos capturados
         documents: List[dict] = []
