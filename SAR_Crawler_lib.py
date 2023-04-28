@@ -2,6 +2,7 @@
 import heapq as hq
 
 from typing import Tuple, List, Optional, Dict, Union
+from xml.dom.minidom import Document
 
 import requests
 import bs4
@@ -136,10 +137,60 @@ class SAR_Wiki_Crawler:
         def clean_text(txt):
             return '\n'.join(l for l in txt.split('\n') if len(l) > 0).strip()
 
-        document = None
+        match = self.title_sum_re.match(text)
+        if not match:
+            return None
 
-        # COMPLETAR
+        title = match.group('title')
+        summary = match.group('summary')
 
+        # Obtenemos las secciones y las subsecciones
+        sections = self.sections_re.split(match.group('rest'))
+        sections = [self.clean_text(s) for s in sections]
+        sections = [s for s in sections if len(s.strip()) > 0]
+
+        sections_dict = []
+        for section in sections:
+            match = self.section_re.match(section)
+            if match:
+                section_name = match.group('name')
+                section_text = match.group('text')
+
+                # Obtenemos las subsecciones
+                subsections = self.subsections_re.split(match.group('rest'))
+                subsections = [self.clean_text(s) for s in subsections]
+                subsections = [s for s in subsections if len(s.strip()) > 0]
+
+                subsections_dict = []
+                for subsection in subsections:
+                    match = self.subsection_re.match(subsection)
+                    if match:
+                        subsection_name = match.group('name')
+                        subsection_text = match.group('text')
+
+                        subsection_dict = {
+                            'name': subsection_name,
+                            'text': subsection_text
+                        }
+
+                        subsections_dict.append(subsection_dict)
+
+                section_dict = {
+                    'name': section_name,
+                    'text': section_text,
+                    'subsections': subsections_dict
+                }
+
+                sections_dict.append(section_dict)
+
+        # Construimos el diccionario final con los resultados
+        document = {
+            'url': url,
+            'title': title,
+            'summary': summary,
+            'sections': sections_dict
+        }
+        print(title)
         return document
 
 
