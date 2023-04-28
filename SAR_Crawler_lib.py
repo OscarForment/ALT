@@ -179,6 +179,7 @@ class SAR_Wiki_Crawler:
             'summary': summary,
             'sections': sections_dict
         }
+        print(title)
         return document
 
 
@@ -260,17 +261,22 @@ class SAR_Wiki_Crawler:
 
         # COMPLETAR
         while len(queue) > 0 and total_documents_captured <= document_limit:
+            print(queue)
             url = hq.heappop(queue)
+            i=i+1
             visited.add(url[2])
-            pagina = self.get_wikipedia_entry_content(url[2])
-            texto = pagina[0]
-            enlaces = pagina[1]
-            for enlace in enlaces:
-                if enlace not in visited:
-                    hq.heappush(queue, [url[0],"",enlace])
-            dicc = self.parse_wikipedia_textual_content(texto, url[2])
-            self.save_documents((dicc,url[2]),base_filename,None,None)
-            total_documents_captured += 1
+            if(self.get_wikipedia_entry_content(url[2]) is not None):
+                texto, links = self.get_wikipedia_entry_content(url[2])
+                enlaces=[]
+                for e in links:
+                    if self.wiki_re.match(e):
+                        enlaces.append("https://es.wikipedia.org"+re.sub("-","_",e))
+                for enlace in enlaces:
+                    if enlace not in visited:
+                        hq.heappush(queue, (url[0]+1,"",enlace))
+                documents.append((self.parse_wikipedia_textual_content(texto, url[2]),url[2]))
+                total_documents_captured += 1
+            self.save_documents(documents,base_filename,None,None)
 
     def wikipedia_crawling_from_url(self,
         initial_url: str, document_limit: int, base_filename: str,
