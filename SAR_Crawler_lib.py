@@ -143,24 +143,25 @@ class SAR_Wiki_Crawler:
 
         title = match.group('title')
         summary = match.group('summary')
-
-        # Obtenemos las secciones y las subsecciones
-        """sections = self.sections_re.split(match.group('rest'))
-        sections = [clean_text(s) for s in sections]
-        sections = [s for s in sections if len(s.strip()) > 0]"""
-
-        """sections_dict = []
-        matches = self.sections_re.finditer(match.group('rest'))
-        for match in matches:
-            print(match)
-            print("------------------")
-            section_match = self.section_re.match(match.group(0))
+        sections_dict = []
+        sections_text = self.sections_re.split(match.group('rest'))
+        sections_names = self.sections_re.findall(match.group('rest'))
+        i=1
+        for s_name in sections_names:
+            section = s_name+sections_text[i]
+            i= i+1
+            section_match = self.section_re.match(section)
             name = section_match.group('name')
             text = section_match.group('text')
             rest = section_match.group('rest')
             subsections_dict = []
-            for sub_match in self.subsections_re.finditer(rest):
-                sub_match = self.subsection_re.match(sub_match.group(0))
+            j=1
+            subsections_text = self.subsections_re.split(rest)
+            subsections_names = self.subsections_re.findall(rest)
+            for sub_name in subsections_names:
+                subsection = sub_name+subsections_text[j]
+                j=j+1
+                sub_match = self.subsection_re.match(subsection)
                 subname = sub_match.group('name')
                 subtext = sub_match.group('text')
                 subseccion= {'name': subname, 'text': subtext}
@@ -170,44 +171,14 @@ class SAR_Wiki_Crawler:
                 'text':text,
                 'subsections': subsections_dict
                 }
-            sections_dict.append(seccion)"""
+            sections_dict.append(seccion)
 
-        """sections = self.section_re.finditer(clean_text(match.group('rest')))        
-        sections_dict = []
-        for section in sections:
-            section_name = section.group('name')
-            section_text = section.group('text')
-
-            # Obtenemos las subsecciones
-            subsections = self.subsection_re.finditer(section.group('rest'))
-            subsections_dict = []
-            for subsection in subsections:
-                subsection_name = subsection.group('name')
-                subsection_text = subsection.group('text')
-
-                subsection_dict = {
-                    'name': subsection_name,
-                    'text': subsection_text
-                }
-
-                subsections_dict.append(subsection_dict)
-
-            section_dict = {
-                'name': section_name,
-                'text': section_text,
-                'subsections': subsections_dict
-            }
-
-            sections_dict.append(section_dict)"""
-
-        # Construimos el diccionario final con los resultados
         document = {
             'url': url,
             'title': title,
             'summary': summary,
             'sections': sections_dict
         }
-        #print(document)
         return document
 
 
