@@ -137,7 +137,7 @@ class SAR_Wiki_Crawler:
         def clean_text(txt):
             return '\n'.join(l for l in txt.split('\n') if len(l) > 0).strip()
 
-        match = self.title_sum_re.match(text)
+        match = self.title_sum_re.match(clean_text(text))
         if not match:
             return None
 
@@ -145,43 +145,60 @@ class SAR_Wiki_Crawler:
         summary = match.group('summary')
 
         # Obtenemos las secciones y las subsecciones
-        sections = self.sections_re.split(match.group('rest'))
-        sections = [self.clean_text(s) for s in sections]
-        sections = [s for s in sections if len(s.strip()) > 0]
+        """sections = self.sections_re.split(match.group('rest'))
+        sections = [clean_text(s) for s in sections]
+        sections = [s for s in sections if len(s.strip()) > 0]"""
 
+        """sections_dict = []
+        matches = self.sections_re.finditer(match.group('rest'))
+        for match in matches:
+            print(match)
+            print("------------------")
+            section_match = self.section_re.match(match.group(0))
+            name = section_match.group('name')
+            text = section_match.group('text')
+            rest = section_match.group('rest')
+            subsections_dict = []
+            for sub_match in self.subsections_re.finditer(rest):
+                sub_match = self.subsection_re.match(sub_match.group(0))
+                subname = sub_match.group('name')
+                subtext = sub_match.group('text')
+                subseccion= {'name': subname, 'text': subtext}
+                subsections_dict.append(subseccion)
+            seccion={
+                'name':name,
+                'text':text,
+                'subsections': subsections_dict
+                }
+            sections_dict.append(seccion)"""
+
+        """sections = self.section_re.finditer(clean_text(match.group('rest')))        
         sections_dict = []
         for section in sections:
-            match = self.section_re.match(section)
-            if match:
-                section_name = match.group('name')
-                section_text = match.group('text')
+            section_name = section.group('name')
+            section_text = section.group('text')
 
-                # Obtenemos las subsecciones
-                subsections = self.subsections_re.split(match.group('rest'))
-                subsections = [self.clean_text(s) for s in subsections]
-                subsections = [s for s in subsections if len(s.strip()) > 0]
+            # Obtenemos las subsecciones
+            subsections = self.subsection_re.finditer(section.group('rest'))
+            subsections_dict = []
+            for subsection in subsections:
+                subsection_name = subsection.group('name')
+                subsection_text = subsection.group('text')
 
-                subsections_dict = []
-                for subsection in subsections:
-                    match = self.subsection_re.match(subsection)
-                    if match:
-                        subsection_name = match.group('name')
-                        subsection_text = match.group('text')
-
-                        subsection_dict = {
-                            'name': subsection_name,
-                            'text': subsection_text
-                        }
-
-                        subsections_dict.append(subsection_dict)
-
-                section_dict = {
-                    'name': section_name,
-                    'text': section_text,
-                    'subsections': subsections_dict
+                subsection_dict = {
+                    'name': subsection_name,
+                    'text': subsection_text
                 }
 
-                sections_dict.append(section_dict)
+                subsections_dict.append(subsection_dict)
+
+            section_dict = {
+                'name': section_name,
+                'text': section_text,
+                'subsections': subsections_dict
+            }
+
+            sections_dict.append(section_dict)"""
 
         # Construimos el diccionario final con los resultados
         document = {
@@ -190,7 +207,7 @@ class SAR_Wiki_Crawler:
             'summary': summary,
             'sections': sections_dict
         }
-        print(title)
+        #print(document)
         return document
 
 
@@ -271,7 +288,18 @@ class SAR_Wiki_Crawler:
             total_files = math.ceil(document_limit / batch_size)
 
         # COMPLETAR
-
+        while len(queue) > 0 and total_documents_captured <= document_limit:
+            url = hq.heappop(queue)
+            visited.add(url[2])
+            pagina = self.get_wikipedia_entry_content(url[2])
+            texto = pagina[0]
+            enlaces = pagina[1]
+            for enlace in enlaces:
+                if enlace not in visited:
+                    hq.heappush(queue, [url[0],"",enlace])
+            dicc = self.parse_wikipedia_textual_content(texto, url[2])
+            self.save_documents((dicc,url[2]),base_filename,None,None)
+            total_documents_captured += 1
 
     def wikipedia_crawling_from_url(self,
         initial_url: str, document_limit: int, base_filename: str,
