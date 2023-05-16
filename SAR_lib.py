@@ -240,7 +240,7 @@ class SAR_Indexer:
             txt = j['all'];
             tokens=self.tokenize(txt);
             if(not self.already_in_index(j['url'])):
-                self.articles[self.conta]=contd;
+                self.articles[self.conta]={self.contd,i};
                 for token in tokens:
                     if token not in self.index:
                         self.index[token] = {self.conta: 1}
@@ -663,12 +663,25 @@ class SAR_Indexer:
         return: posting list con los artid incluidos de p1 y no en p2
 
         """
+        result = []
+        ind1 = 0
+        ind2 = 0
 
-        
-        pass
-        ########################################################
-        ## COMPLETAR PARA TODAS LAS VERSIONES SI ES NECESARIO ##
-        ########################################################
+        while ind1 < len(p1) and ind2 < len(p2):
+            if p1[ind1] == p2[ind2]:
+                ind1 += 1
+                ind2 += 1
+            elif p1[ind1] < p2[ind2]:
+                result.append(p1[ind1])
+                ind1 += 1
+            else:
+                p2_index += 1
+
+        while ind1 < len(p1):
+            result.append(p1[ind1])
+            ind1 += 1
+
+        return result
 
 
 
