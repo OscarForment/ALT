@@ -260,6 +260,8 @@ class SAR_Indexer:
         ### COMPLETAR ###
         #################
 
+        
+
 
 
     def set_stemming(self, v:bool):
@@ -335,10 +337,57 @@ class SAR_Indexer:
         Muestra estadisticas de los indices
         
         """
-        pass
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
+        print("===================================================")
+        print("Number of indexed days: ", len(self.index['date'] if self.multifield else ''))
+        print("---------------------------------------------------")
+        print("Number of indexed news: ", self.new_id)
+        print("---------------------------------------------------")
+        print("TOKENS: ")
+
+        if self.multifield:
+            for field, _ in self.fields:
+                print("Number of tokens in field" , len(self.index[field]))
+
+        else:
+            print("Number of tokens in article",  len(self.index))
+
+        if self.permuterm:
+            print("---------------------------------------------------")
+            print("PERMUTERMS: ")
+
+            if self.multifield:
+                for field, _ in self.fields:
+                    print("Number of permuterms in field" , len(self.ptindex[field]))
+            else:
+                print("Number of permuterms in article ", len(self.ptindex))
+
+        if self.stemming:
+            print("---------------------------------------------------")
+            print("STEMS: ")
+
+            if self.multifield:
+                for field, _ in self.fields:
+                    print("Number of stems in  field " , len(self.sindex[field]))
+
+            else:
+                print("Number of stems in article " ,  len(self.sindex))
+
+        if self.positional:
+            print("---------------------------------------------------")
+            print("Positional queries are allowed")
+
+        else:
+            print("---------------------------------------------------")
+            print("Positional queries are NOT allowed")
+
+        print("===================================================")
+
+        
+
+
 
         
 
@@ -375,10 +424,66 @@ class SAR_Indexer:
 
         if query is None or len(query) == 0:
             return []
-
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
+
+
+        conectores = ['AND', 'OR', 'NOT']
+        query_list = query.split()
+
+        query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
+
+        if len(query_list) == 1 and query not in conectores:
+            return self.get_posting(*query_list[0])
+
+        terms_postings = {}
+        term_pos = 0
+
+        for term in query_list:
+            if len(term) == 1:
+                if term[0] not in conectores:
+                    terms_postings[term_pos] = self.get_posting(*term)
+            else:
+                terms_postings[term_pos] = self.get_posting(*term)
+
+            term_pos = term_pos + 1
+
+        query_list = query.split()
+
+        x = 0
+        while x < len(query_list) - 1:
+
+            if query_list[x] == 'NOT':
+                terms_postings[x + 1] = self.reverse_posting(terms_postings.get(x + 1))
+
+            elif query_list[x] == 'AND':
+                prev_term_posting = terms_postings.get(x - 1)
+
+                if query_list[x + 1] == 'NOT':
+                    second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
+                    terms_postings[x + 2] = self.and_posting(prev_term_posting, second_term_posting)
+                    x += 1
+
+                else:
+                    terms_postings[x + 1] = self.and_posting(prev_term_posting, terms_postings.get(x + 1))
+
+            elif query_list[x] == 'OR':
+                prev_term_posting = terms_postings.get(x - 1)
+
+                if query_list[x + 1] == 'NOT':
+                    second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
+                    terms_postings[x + 2] = self.or_posting(prev_term_posting, second_term_posting)
+                    x += 1 
+
+                else:
+                    terms_postings[x + 1] = self.or_posting(prev_term_posting, terms_postings.get(x + 1))
+
+            x += 1
+
+        return terms_postings[len(query_list) - 1]
+        
+
 
 
 
@@ -404,7 +509,26 @@ class SAR_Indexer:
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
-        pass
+        index = self.index[field] if self.multifield else self.index
+
+        if '*' in term or '?' in term:
+            return self.get_permuterm(term)
+
+        elif self.use_stemming:
+            return self.get_stemming(term, field)
+
+        if index.get(term) is None:
+            return []
+
+        else:
+            res_repetidos= list(index.get(term))
+            res = []
+
+            for i in res_repetidos:
+                if i not in res:
+                    res.append(i)
+
+            return res
 
 
 
@@ -599,10 +723,23 @@ class SAR_Indexer:
         return: el numero de artículo recuperadas, para la opcion -T
 
         """
-        pass
         ################
         ## COMPLETAR  ##
         ################
+
+        resultado = self.solve_query(query)
+
+        if self.use_ranking:
+            result = self.rank_result(resultado, query)
+
+        print("===================================================")
+        print("Query: ", query)
+        print("Number of results: " , len(result))
+
+        # for news_id in result:
+        #     print(news_id)
+
+        print("=================================================")
 
 
 

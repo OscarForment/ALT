@@ -2,6 +2,7 @@
 import heapq as hq
 
 from typing import Tuple, List, Optional, Dict, Union
+from xml.dom.minidom import Document
 
 import requests
 import bs4
@@ -20,7 +21,7 @@ class SAR_Wiki_Crawler:
 
     def __init__(self):
         # Expresión regular para detectar si es un enlace de la Wikipedia
-        self.wiki_re = re.compile(r"(http(s)?:\/\/(es)\.wikipedia\.org)?\/wiki\/[\w\/_\(\)\%]+")
+        self.wiki_re = re.compile(r"(http(s)?:\/\/(es)\.wikipedia\.org)?\/wiki\/[\w\/_\(\)\%\:]+")
         # Expresión regular para limpiar anclas de editar
         self.edit_re = re.compile(r"\[(editar)\]")
         # Formato para cada nivel de sección
@@ -136,10 +137,48 @@ class SAR_Wiki_Crawler:
         def clean_text(txt):
             return '\n'.join(l for l in txt.split('\n') if len(l) > 0).strip()
 
-        document = None
+        match = self.title_sum_re.match(text)
+        if not match:
+            return None
 
-        # COMPLETAR
+        title = match.group('title')
+        summary = match.group('summary')
+        sections_dict = []
+        sections_text = self.sections_re.split(match.group('rest'))
+        sections_names = self.sections_re.findall(match.group('rest'))
+        i=1
+        for s_name in sections_names:
+            section = s_name+sections_text[i]
+            i= i+1
+            section_match = self.section_re.match(section)
+            name = section_match.group('name')
+            text = section_match.group('text')
+            rest = section_match.group('rest')
+            subsections_dict = []
+            j=1
+            subsections_text = self.subsections_re.split(rest)
+            subsections_names = self.subsections_re.findall(rest)
+            for sub_name in subsections_names:
+                subsection = sub_name+subsections_text[j]
+                j=j+1
+                sub_match = self.subsection_re.match(subsection)
+                subname = sub_match.group('name')
+                subtext = sub_match.group('text')
+                subseccion= {'name': subname, 'text': subtext}
+                subsections_dict.append(subseccion)
+            seccion={
+                'name':name,
+                'text':text,
+                'subsections': subsections_dict
+                }
+            sections_dict.append(seccion)
 
+        document = {
+            'url': url,
+            'title': title,
+            'summary': summary,
+            'sections': sections_dict
+        }
         return document
 
 
@@ -204,7 +243,7 @@ class SAR_Wiki_Crawler:
         queue = [(0, "", url) for url in to_process]
         hq.heapify(queue)
         # Buffer de documentos capturados
-        documents: List[dict] = []
+        
         # Contador del número de documentos capturados
         total_documents_captured = 0
         # Contador del número de ficheros escritos
@@ -220,7 +259,27 @@ class SAR_Wiki_Crawler:
             total_files = math.ceil(document_limit / batch_size)
 
         # COMPLETAR
-
+        while (total_files is None or files_count < total_files) and total_documents_captured < document_limit:
+            i=0
+            documents: List[dict] = []
+            while len(queue) > 0 and total_documents_captured < document_limit and (batch_size is None or i < batch_size):
+                url = hq.heappop(queue)
+                if(self.is_valid_url(url[2])):
+                    visited.add(url[2])
+                    if(self.get_wikipedia_entry_content(url[2]) is not None):
+                        i+=1
+                        texto, links = self.get_wikipedia_entry_content(url[2])
+                        enlaces=[]
+                        for e in links:
+                            if self.wiki_re.match(e):
+                                enlaces.append("https://es.wikipedia.org"+re.sub("-","_",e))
+                        for enlace in enlaces:
+                            if enlace not in visited and (url[0]<max_depth_level or max_depth_level is None):
+                                hq.heappush(queue, (url[0]+1,"",enlace))
+                        documents.append(self.parse_wikipedia_textual_content(texto, url[2]))
+                        total_documents_captured += 1
+            files_count+=1
+            self.save_documents(documents,base_filename,files_count,total_files)
 
     def wikipedia_crawling_from_url(self,
         initial_url: str, document_limit: int, base_filename: str,
