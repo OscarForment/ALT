@@ -47,8 +47,10 @@ class SAR_Indexer:
         self.sindex = {} # hash para el indice invertido de stems --> clave: stem, valor: lista con los terminos que tienen ese stem
         self.ptindex = {} # hash para el indice permuterm.
         self.docs = {} # diccionario de terminos --> clave: entero(docid),  valor: ruta del fichero.
+        self.contd=0 # Contador para la clave entera(docid) del diccionario docs
         self.weight = {} # hash de terminos para el pesado, ranking de resultados.
         self.articles = {} # hash de articulos --> clave entero (artid), valor: la info necesaria para diferencia los artículos dentro de su fichero
+        self.conta=0 # Contador para la clave entera(artid) del diccionario artículo
         self.tokenizer = re.compile("\W+") # expresion regular para hacer la tokenizacion
         self.stemmer = SnowballStemmer('spanish') # stemmer en castellano
         self.show_all = False # valor por defecto, se cambia con self.set_showall()
@@ -232,9 +234,21 @@ class SAR_Indexer:
 
 
         """
+        self.docs[self.contd] = filename;
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
-
+            txt = j['all'];
+            tokens=self.tokenize(txt);
+            if(not self.already_in_index(j['url'])):
+                self.articles[self.conta]=contd;
+                for token in tokens:
+                    if token not in self.index:
+                        self.index[token] = {self.conta: 1}
+                    else:
+                        self.index[token][self.conta] += 1 
+                self.urls.add(j['url']);
+                self.conta+=1;
+        self.contd+=1;
 
         #
         # 
