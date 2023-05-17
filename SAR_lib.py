@@ -236,7 +236,7 @@ class SAR_Indexer:
 
 
         """
-        self.docs[self.contd] = filename
+        """self.docs[self.contd] = filename
         if self.multifield:
             for i, line in enumerate(open(filename)):
                 j = self.parse_article(line)
@@ -247,7 +247,6 @@ class SAR_Indexer:
                         tokens=txt
                         if tok:
                             tokens=self.tokenize(txt)
-                        
                         for token in tokens:
                             if token not in self.index[field]:
                                 self.index[field][token] = []
@@ -269,7 +268,33 @@ class SAR_Indexer:
                     self.urls.add(j['url'])
                     self.conta+=1
             self.contd+=1
-
+        """
+        self.docs[self.contd] = filename
+        for i, line in enumerate(open(filename)):
+            j = self.parse_article(line)
+            if(not self.already_in_index(j['url'])):
+                self.articles[self.conta]={self.contd,i}
+                if self.multifield:
+                    for field,tok in self.fields:
+                        txt = j[field]
+                        tokens=txt
+                        if tok:
+                            tokens=self.tokenize(txt)
+                        for token in tokens:
+                            if token not in self.index[field]:
+                                self.index[field][token] = []
+                            self.index[field][token].append(self.conta)
+                else:
+                    txt = j['all']
+                    tokens=self.tokenize(txt)
+                    self.articles[self.conta]={self.contd,i}
+                    for token in tokens:
+                        if token not in self.index['all']:
+                            self.index['all'][token] = []
+                        self.index['all'][token].append(self.conta)
+                self.urls.add(j['url'])
+                self.conta+=1
+        self.contd+=1
         #
         # 
         # En la version basica solo se debe indexar el contenido "article"
