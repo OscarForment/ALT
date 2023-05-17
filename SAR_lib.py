@@ -172,7 +172,9 @@ class SAR_Indexer:
         self.positional = args['positional']
         self.stemming = args['stem']
         self.permuterm = args['permuterm']
-
+        for field in self.fields:
+            self.index[field[0]]={}
+        print(self.index)
         file_or_dir = Path(root)
         
         if file_or_dir.is_file():
@@ -235,19 +237,38 @@ class SAR_Indexer:
 
         """
         self.docs[self.contd] = filename
-        for i, line in enumerate(open(filename)):
-            j = self.parse_article(line)
-            txt = j['all']
-            tokens=self.tokenize(txt)
-            if(not self.already_in_index(j)):
-                self.articles[self.conta]={self.contd,i}
-                for token in tokens:
-                    if token not in self.index:
-                        self.index[token] = []
-                    self.index[token].append((self.contd,self.conta)) 
-                self.urls.add(j['url'])
+        if self.multifield:
+            for i, line in enumerate(open(filename)):
+                j = self.parse_article(line)
+                if(not self.already_in_index(j)):
+                    for field,tok in self.fields:
+                        txt = j[field]
+                        tokens=txt
+                        if tok:
+                            tokens=self.tokenize(txt)
+                        
+                        self.articles[self.conta]={self.contd,i}
+                        for token in tokens:
+                            if token not in self.index[field]:
+                                self.index[field][token] = []
+                            self.index[field][token].append((self.contd,self.conta)) 
+                    self.urls.add(j['url'])
                 self.conta+=1
-        self.contd+=1
+            self.contd+=1
+        else:
+            for i, line in enumerate(open(filename)):
+                j = self.parse_article(line)
+                txt = j['all']
+                tokens=self.tokenize(txt)
+                if(not self.already_in_index(j)):
+                    self.articles[self.conta]={self.contd,i}
+                    for token in tokens:
+                        if token not in self.index['all']:
+                            self.index['all'][token] = []
+                        self.index['all'][token].append((self.contd,self.conta)) 
+                    self.urls.add(j['url'])
+                    self.conta+=1
+            self.contd+=1
 
         #
         # 
@@ -349,10 +370,10 @@ class SAR_Indexer:
 
         if self.multifield:
             for field, _ in self.fields:
-                print("Number of tokens in field" , len(self.index[field]))
+                print("Number of tokens in ",field, ": " , len(self.index[field]))
 
         else:
-            print("Number of tokens in article",  len(self.index))
+            print("Number of tokens in article",  len(self.index['all']))
 
         if self.permuterm:
             print("---------------------------------------------------")
