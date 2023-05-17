@@ -234,21 +234,20 @@ class SAR_Indexer:
 
 
         """
-        self.docs[self.contd] = filename;
+        self.docs[self.contd] = filename
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
-            txt = j['all'];
-            tokens=self.tokenize(txt);
-            if(not self.already_in_index(j['url'])):
-                self.articles[self.conta]={self.contd,i};
+            txt = j['all']
+            tokens=self.tokenize(txt)
+            if(not self.already_in_index(j)):
+                self.articles[self.conta]={self.contd,i}
                 for token in tokens:
                     if token not in self.index:
-                        self.index[token] = {self.conta: 1}
-                    else:
-                        self.index[token][self.conta] += 1 
-                self.urls.add(j['url']);
-                self.conta+=1;
-        self.contd+=1;
+                        self.index[token] = []
+                    self.index[token].append((self.contd,self.conta)) 
+                self.urls.add(j['url'])
+                self.conta+=1
+        self.contd+=1
 
         #
         # 
@@ -340,12 +339,13 @@ class SAR_Indexer:
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
-        print("===================================================")
-        print("Number of indexed days: ", len(self.index['date'] if self.multifield else ''))
-        print("---------------------------------------------------")
-        print("Number of indexed news: ", self.new_id)
-        print("---------------------------------------------------")
-        print("TOKENS: ")
+        print('========================================')
+        print('Number of indexed files: {}'.format(len(self.docs)))
+        print('----------------------------------------')
+        print('Number of indexed articles: {}'.format(len(self.articles)))
+        print('----------------------------------------')
+        print('TOKENS:')
+        
 
         if self.multifield:
             for field, _ in self.fields:
