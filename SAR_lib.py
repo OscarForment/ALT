@@ -241,13 +241,13 @@ class SAR_Indexer:
             for i, line in enumerate(open(filename)):
                 j = self.parse_article(line)
                 if(not self.already_in_index(j)):
+                    self.articles[self.conta]={self.contd,i}
                     for field,tok in self.fields:
                         txt = j[field]
                         tokens=txt
                         if tok:
                             tokens=self.tokenize(txt)
                         
-                        self.articles[self.conta]={self.contd,i}
                         for token in tokens:
                             if token not in self.index[field]:
                                 self.index[field][token] = []
