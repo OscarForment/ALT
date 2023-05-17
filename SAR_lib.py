@@ -251,7 +251,7 @@ class SAR_Indexer:
                         for token in tokens:
                             if token not in self.index[field]:
                                 self.index[field][token] = []
-                            self.index[field][token].append((self.contd,self.conta)) 
+                            self.index[field][token].append(self.conta) 
                     self.urls.add(j['url'])
                 self.conta+=1
             self.contd+=1
