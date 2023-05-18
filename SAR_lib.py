@@ -248,12 +248,14 @@ class SAR_Indexer:
                             tokens=self.tokenize(txt)
                             pos=0;
                             for token in tokens:
-                                if token not in self.index[field]:
-                                    self.index[field][token] = []
                                 if not self.positional:
+                                    if token not in self.index[field]:
+                                        self.index[field][token] = []
                                     if self.conta not in self.index[field][token]:
                                         self.index[field][token].append(self.conta)
                                 else:
+                                    if token not in self.index[field]:
+                                        self.index[field][token] = {}
                                     if self.conta not in self.index[field][token]:
                                         self.index[field][token][self.conta]=[]
                                     self.index[field][token][self.conta].append(pos)
@@ -269,12 +271,14 @@ class SAR_Indexer:
                     self.articles[self.conta]={self.contd,i}
                     pos=0
                     for token in tokens:
-                        if token not in self.index['all']:
-                            self.index['all'][token] = []
                         if not self.positional:
+                            if token not in self.index['all']:
+                                self.index['all'][token] = []
                             if self.conta not in self.index['all'][token]:
                                 self.index['all'][token].append(self.conta)
                         else:
+                            if token not in self.index['all']:
+                                self.index['all'][token] = {}
                             if self.conta not in self.index['all'][token]:
                                 self.index['all'][token][self.conta]=[]
                             self.index['all'][token][self.conta].append(pos)
