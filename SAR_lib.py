@@ -642,8 +642,29 @@ class SAR_Indexer:
         return: posting list con todos los artid exceptos los contenidos en p
 
         """
+        allarts = []
+        artids = list(self.articles.keys())
+        artids.sort()
+        for article_id in artids:
+            allarts.append((self.articles[article_id][0], article_id))
+        result = []
+        i = 0
+        j = 0
+        while (i < len(p)) & (j < len(allarts)):
+            if p[i] == allarts[j]:
+                i = i + 1
+                j = j + 1
+            elif p[i] < allarts[j]:
+                i = i + 1
+            else:
+                result.append(allarts[j])
+                j = j + 1
         
-        pass
+        while j < len(allarts):
+            result.append(allarts[j])
+            j = j + 1
+
+        return result
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
@@ -662,8 +683,20 @@ class SAR_Indexer:
         return: posting list con los artid incluidos en p1 y p2
 
         """
-        
-        pass
+        result = []
+        i = 0
+        j = 0
+        while (i < len(p1)) & (j < len(p2)):
+            if p1[i] == p2[j]:
+                result.append(p2[j])
+                i = i + 1
+                j = j + 1
+            elif p1[i] < p2[j]:
+                i = i + 1
+            else:
+                j = j + 1
+
+        return result
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
@@ -683,7 +716,30 @@ class SAR_Indexer:
 
         """
 
-        pass
+        result = []
+        i = 0
+        j = 0
+        while (i < len(p1)) & (j < len(p2)):
+            if p1[i] == p2[j]:
+                result.append(p2[j])
+                i = i + 1
+                j = j + 1
+            elif p1[i] < p2[j]:
+                result.append(p1[i])
+                i = i + 1
+            else:
+                result.append(p2[j])
+                j = j + 1
+        
+        while i < len(p1):
+            result.append(p1[i])
+            i = i + 1
+
+        while j < len(p2):
+            result.append(p2[j])
+            j = j + 1
+
+        return result
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
