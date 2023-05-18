@@ -272,7 +272,7 @@ class SAR_Indexer:
         self.docs[self.contd] = filename
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
-            if(not self.already_in_index(j['url'])):
+            if(not self.already_in_index(j)):
                 self.articles[self.conta]={self.contd,i}
                 if self.multifield:
                     for field,tok in self.fields:
