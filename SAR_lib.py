@@ -236,39 +236,6 @@ class SAR_Indexer:
 
 
         """
-        """self.docs[self.contd] = filename
-        if self.multifield:
-            for i, line in enumerate(open(filename)):
-                j = self.parse_article(line)
-                if(not self.already_in_index(j)):
-                    self.articles[self.conta]={self.contd,i}
-                    for field,tok in self.fields:
-                        txt = j[field]
-                        tokens=txt
-                        if tok:
-                            tokens=self.tokenize(txt)
-                        for token in tokens:
-                            if token not in self.index[field]:
-                                self.index[field][token] = []
-                            self.index[field][token].append(self.conta) 
-                    self.urls.add(j['url'])
-                self.conta+=1
-            self.contd+=1
-        else:
-            for i, line in enumerate(open(filename)):
-                j = self.parse_article(line)
-                txt = j['all']
-                tokens=self.tokenize(txt)
-                if(not self.already_in_index(j)):
-                    self.articles[self.conta]={self.contd,i}
-                    for token in tokens:
-                        if token not in self.index['all']:
-                            self.index['all'][token] = []
-                        self.index['all'][token].append(self.conta) 
-                    self.urls.add(j['url'])
-                    self.conta+=1
-            self.contd+=1
-        """
         self.docs[self.contd] = filename
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
@@ -279,25 +246,39 @@ class SAR_Indexer:
                         txt = j[field]
                         if tok:
                             tokens=self.tokenize(txt)
+                            pos=0;
                             for token in tokens:
                                 if token not in self.index[field]:
                                     self.index[field][token] = []
-                                if self.conta not in self.index[field][token]:
-                                    self.index[field][token].append(self.conta)
+                                if not self.positional:
+                                    if self.conta not in self.index[field][token]:
+                                        self.index[field][token].append(self.conta)
+                                else:
+                                    if self.conta not in self.index[field][token]:
+                                        self.index[field][token][self.conta]=[]
+                                    self.index[field][token][self.conta].append(pos)
+                                pos+=1
                         else:
                             token=txt
                             if token not in self.index[field]:
                                 self.index[field][token] = []
-                            self.index[field][token].append(self.conta)
+                            self.index[field][token].append(self.conta)#Duda posicional url?
                 else:
                     txt = j['all']
                     tokens=self.tokenize(txt)
                     self.articles[self.conta]={self.contd,i}
+                    pos=0
                     for token in tokens:
                         if token not in self.index['all']:
                             self.index['all'][token] = []
-                        if self.conta not in self.index['all'][token]:
-                            self.index['all'][token].append(self.conta)
+                        if not self.positional:
+                            if self.conta not in self.index['all'][token]:
+                                self.index['all'][token].append(self.conta)
+                        else:
+                            if self.conta not in self.index['all'][token]:
+                                self.index['all'][token][self.conta]=[]
+                            self.index['all'][token][self.conta].append(pos)
+                        pos+=1
                 self.urls.add(j['url'])
                 self.conta+=1
         self.contd+=1
@@ -597,6 +578,8 @@ class SAR_Indexer:
 
         """
         pass
+
+       
         ########################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA DE POSICIONALES ##
         ########################################################
