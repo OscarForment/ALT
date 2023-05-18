@@ -277,10 +277,14 @@ class SAR_Indexer:
                 if self.multifield:
                     for field,tok in self.fields:
                         txt = j[field]
-                        tokens=txt
                         if tok:
                             tokens=self.tokenize(txt)
-                        for token in tokens:
+                            for token in tokens:
+                                if token not in self.index[field]:
+                                    self.index[field][token] = []
+                                self.index[field][token].append(self.conta)
+                        else:
+                            token=txt
                             if token not in self.index[field]:
                                 self.index[field][token] = []
                             self.index[field][token].append(self.conta)
