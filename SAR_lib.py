@@ -282,7 +282,8 @@ class SAR_Indexer:
                             for token in tokens:
                                 if token not in self.index[field]:
                                     self.index[field][token] = []
-                                self.index[field][token].append(self.conta)
+                                if self.conta not in self.index[field][token]:
+                                    self.index[field][token].append(self.conta)
                         else:
                             token=txt
                             if token not in self.index[field]:
@@ -295,7 +296,8 @@ class SAR_Indexer:
                     for token in tokens:
                         if token not in self.index['all']:
                             self.index['all'][token] = []
-                        self.index['all'][token].append(self.conta)
+                        if self.conta not in self.index['all'][token]:
+                            self.index['all'][token].append(self.conta)
                 self.urls.add(j['url'])
                 self.conta+=1
         self.contd+=1
