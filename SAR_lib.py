@@ -8,6 +8,24 @@ from pathlib import Path
 from typing import Optional, List, Union, Dict
 import pickle
 
+"""Autores:
+        Calero Jimenez, David
+        Forment Reina, Óscar
+        Ordoño Saiz, Álvaro
+        Sarmiento Tendero, Manuel
+    Funcionalidades implementadas:
+        index_dir
+        index_file
+        show_stats
+        solve_query
+        get_posting
+        and, or , reverse y minus posting
+
+        multifield
+        permuterm
+        positionals
+        """
+
 class SAR_Indexer:
     """
     Prototipo de la clase para realizar la indexacion y la recuperacion de artículos de Wikipedia
