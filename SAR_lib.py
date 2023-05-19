@@ -597,20 +597,22 @@ class SAR_Indexer:
         res=[];
         if terms[0] in self.index[field]:
             for art, postlist in self.index[field][terms[0]].items():
-                seguido = True
                 for pos in postlist:
-                    for term in (term for term in terms[1:] if seguido):
+                    seguido=True
+                    for term in terms[1:]:
                         if term in self.index[field]:
                             if art in self.index[field][term]:
                                 if pos + 1 in self.index[field][term][art]:
                                     pos += 1
                                 else:
                                     seguido = False
+                                    break
                             else:
                                 seguido = False
+                                break
                         else:
                             seguido = False
-
+                            break
                 if seguido:
                     res.append(art);
 
