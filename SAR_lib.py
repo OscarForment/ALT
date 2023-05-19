@@ -653,17 +653,17 @@ class SAR_Indexer:
         i = 0
         j = 0
         while (i < len(p)) & (j < len(allarts)):
-            if p[i] == allarts[j]:
+            if p[i] == allarts[j][1]:
                 i = i + 1
                 j = j + 1
-            elif p[i] < allarts[j]:
+            elif p[i] < allarts[j][1]:
                 i = i + 1
             else:
-                result.append(allarts[j])
+                result.append(allarts[j][1])
                 j = j + 1
         
         while j < len(allarts):
-            result.append(allarts[j])
+            result.append(allarts[j][1])
             j = j + 1
 
         return result
@@ -818,7 +818,7 @@ class SAR_Indexer:
                     print(f'>>>>{query}\t{reference} != {result}<<<<')
                     errors = True                    
             else:
-                print(query)
+                """print(query)"""
         return not errors
 
 
@@ -847,8 +847,10 @@ class SAR_Indexer:
         if not self.show_all:
             result=[]
             print("Found in articles (only the first 10 articles): ")
-            for i in range(10): 
+            i=0
+            while i<10 and i<len(resultado): 
                 print("    #", i+1, "(", resultado[i], ")", self.articles[resultado[i]][2],":         ", self.articles[resultado[i]][3])
+                i+=1
             
         else:
             print("Found in articles: ")
