@@ -482,8 +482,7 @@ class SAR_Indexer:
                 prev_term_posting = terms_postings.get(x - 1)
 
                 if query_list[x + 1] == 'not':
-                    second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
-                    terms_postings[x + 2] = self.and_posting(prev_term_posting, second_term_posting)
+                    terms_postings[x + 2] = self.minus_posting(prev_term_posting, terms_postings.get(x + 2))
                     x += 1
 
                 else:
@@ -757,7 +756,7 @@ class SAR_Indexer:
                 result.append(p1[ind1])
                 ind1 += 1
             else:
-                p2_index += 1
+                ind2 += 1
 
         while ind1 < len(p1):
             result.append(p1[ind1])
