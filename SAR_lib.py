@@ -174,7 +174,6 @@ class SAR_Indexer:
         self.permuterm = args['permuterm']
         for field in self.fields:
             self.index[field[0]]={}
-        print(self.index)
         file_or_dir = Path(root)
         
         if file_or_dir.is_file():
@@ -240,13 +239,13 @@ class SAR_Indexer:
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
             if(not self.already_in_index(j)):
-                self.articles[self.conta]={self.contd,i}
+                self.articles[self.conta]=[self.contd,i,j['title'],j['url']]
                 if self.multifield:
                     for field,tok in self.fields:
                         txt = j[field]
                         if tok:
                             tokens=self.tokenize(txt)
-                            pos=0;
+                            pos=0
                             for token in tokens:
                                 if not self.positional:
                                     if token not in self.index[field]:
@@ -268,7 +267,7 @@ class SAR_Indexer:
                 else:
                     txt = j['all']
                     tokens=self.tokenize(txt)
-                    self.articles[self.conta]={self.contd,i}
+                    self.articles[self.conta]=[self.contd,i,j['title'],j['url']]
                     pos=0
                     for token in tokens:
                         if not self.positional:
@@ -546,8 +545,12 @@ class SAR_Indexer:
         ########################################
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
-        index = self.index[field] if self.multifield else self.index
+        """ index = self.index[field] if self.multifield else self.index """
 
+        if field is not None:
+            index = self.index[field]
+        else:
+            index = self.index['all']
         if '*' in term or '?' in term:
             return self.get_permuterm(term)
 
@@ -564,7 +567,6 @@ class SAR_Indexer:
             for i in res_repetidos:
                 if i not in res:
                     res.append(i)
-
             return res
 
 
@@ -838,16 +840,23 @@ class SAR_Indexer:
         resultado = self.solve_query(query)
 
         if self.use_ranking:
-            result = self.rank_result(resultado, query)
+            resultado = self.rank_result(resultado, query)
 
         print("===================================================")
         print("Query: ", query)
-        print("Number of results: " , len(result))
-
-        # for news_id in result:
-        #     print(news_id)
-
+        if not self.show_all:
+            result=[]
+            print("Found in articles (only the first 10 articles): ")
+            for i in range(10): 
+                print("    #", i+1, "(", resultado[i], ")", self.articles[resultado[i]][2],":         ", self.articles[resultado[i]][3])
+            
+        else:
+            print("Found in articles: ")
+            for i in range(len(resultado)):
+                print("    #", i+1, "(", resultado[i], ")", self.articles[resultado[i]][2],":         ", self.articles[resultado[i]][3])
+        
         print("=================================================")
+        print("Number of results:", len(resultado))
 
 
 
