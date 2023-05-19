@@ -8,6 +8,24 @@ from pathlib import Path
 from typing import Optional, List, Union, Dict
 import pickle
 
+"""Autores:
+        Calero Jimenez, David
+        Forment Reina, Óscar
+        Ordoño Saiz, Álvaro
+        Sarmiento Tendero, Manuel
+    Funcionalidades implementadas:
+        index_dir
+        index_file
+        show_stats
+        solve_query
+        get_posting
+        and, or , reverse y minus posting
+
+        multifield
+        permuterm
+        positionals
+        """
+
 class SAR_Indexer:
     """
     Prototipo de la clase para realizar la indexacion y la recuperacion de artículos de Wikipedia
@@ -239,7 +257,7 @@ class SAR_Indexer:
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
             if(not self.already_in_index(j)):
-                self.articles[self.conta]=[self.contd,i,j['title'],j['url']]
+                self.articles[self.conta]=[self.contd,i,j['title'],j['url'],j['all']]
                 if self.multifield:
                     for field,tok in self.fields:
                         txt = j[field]
@@ -267,6 +285,7 @@ class SAR_Indexer:
                 else:
                     txt = j['all']
                     tokens=self.tokenize(txt)
+                    self.articles[self.conta]=[self.contd,i,j['title'],j['url']]
                     pos=0
                     for token in tokens:
                         if not self.positional:
@@ -356,10 +375,19 @@ class SAR_Indexer:
 
 
         """
-        pass
         ####################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA DE STEMMING ##
         ####################################################
+        for term in self.index['article'].keys():
+            term = term + '$'
+            permuterm_list = []
+
+            i=0
+            while (i < len(term)):
+                term = term[1:] + term[0]
+                permuterm_list.append(term)
+                i = i + 1
+            self.ptindex['article'][term] = len(permuterm_list) +1
 
 
 
@@ -463,8 +491,8 @@ class SAR_Indexer:
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
 
-
-        conectores = ['AND', 'OR', 'NOT']
+        query = query.lower()
+        conectores = ['and', 'or', 'not']
         query_list = query.split()
 
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
@@ -489,24 +517,23 @@ class SAR_Indexer:
         x = 0
         while x < len(query_list) - 1:
 
-            if query_list[x] == 'NOT':
+            if query_list[x] == 'not':
                 terms_postings[x + 1] = self.reverse_posting(terms_postings.get(x + 1))
 
-            elif query_list[x] == 'AND':
+            elif query_list[x] == 'and':
                 prev_term_posting = terms_postings.get(x - 1)
 
-                if query_list[x + 1] == 'NOT':
-                    second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
-                    terms_postings[x + 2] = self.and_posting(prev_term_posting, second_term_posting)
+                if query_list[x + 1] == 'not':
+                    terms_postings[x + 2] = self.minus_posting(prev_term_posting, terms_postings.get(x + 2))
                     x += 1
 
                 else:
                     terms_postings[x + 1] = self.and_posting(prev_term_posting, terms_postings.get(x + 1))
 
-            elif query_list[x] == 'OR':
+            elif query_list[x] == 'or':
                 prev_term_posting = terms_postings.get(x - 1)
 
-                if query_list[x + 1] == 'NOT':
+                if query_list[x + 1] == 'not':
                     second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
                     terms_postings[x + 2] = self.or_posting(prev_term_posting, second_term_posting)
                     x += 1 
@@ -645,7 +672,21 @@ class SAR_Indexer:
         ##################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA PERMUTERM ##
         ##################################################
-        pass
+        self.make_permuterm()
+        if "?" in term:
+            term_query = term + '$'
+            while term_query[-1] is not "?":
+                term_query = term_query[1:] + term_query[0]
+        else:
+            term_query = term + '$'
+            while term_query[-1] is not "*":
+                term_query = term_query[1:] + term_query[0]
+
+        for permuterm_index_elements in self.ptindex:
+            for element in permuterm_index_elements:
+                if element == term_query[:-1]:
+                    return self.index[field][element]
+        return []
 
 
 
@@ -672,17 +713,17 @@ class SAR_Indexer:
         i = 0
         j = 0
         while (i < len(p)) & (j < len(allarts)):
-            if p[i] == allarts[j]:
+            if p[i] == allarts[j][1]:
                 i = i + 1
                 j = j + 1
-            elif p[i] < allarts[j]:
+            elif p[i] < allarts[j][1]:
                 i = i + 1
             else:
-                result.append(allarts[j])
+                result.append(allarts[j][1])
                 j = j + 1
         
         while j < len(allarts):
-            result.append(allarts[j])
+            result.append(allarts[j][1])
             j = j + 1
 
         return result
@@ -791,7 +832,7 @@ class SAR_Indexer:
                 result.append(p1[ind1])
                 ind1 += 1
             else:
-                p2_index += 1
+                ind2 += 1
 
         while ind1 < len(p1):
             result.append(p1[ind1])
@@ -837,7 +878,7 @@ class SAR_Indexer:
                     print(f'>>>>{query}\t{reference} != {result}<<<<')
                     errors = True                    
             else:
-                print(query)
+                print(line)
         return not errors
 
 
@@ -866,8 +907,10 @@ class SAR_Indexer:
         if not self.show_all:
             result=[]
             print("Found in articles (only the first 10 articles): ")
-            for i in range(10): 
+            i=0
+            while i<10 and i<len(resultado): 
                 print("    #", i+1, "(", resultado[i], ")", self.articles[resultado[i]][2],":         ", self.articles[resultado[i]][3])
+                i+=1
             
         else:
             print("Found in articles: ")

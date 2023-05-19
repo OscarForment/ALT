@@ -12,7 +12,11 @@ import json
 import math
 import os
 
-
+"""Autores:
+        Calero Jimenez, David
+        Forment Reina, Óscar
+        Ordoño Saiz, Álvaro
+        Sarmiento Tendero, Manuel """
 
 
 
