@@ -244,7 +244,7 @@ class SAR_Indexer:
                     fields=self.fields
                 else:
                     fields = [('all',True)]
-                for field,tok in self.fields:
+                for field,tok in fields:
                     txt = j[field]
                     if tok:
                         tokens=self.tokenize(txt)
