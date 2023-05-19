@@ -257,7 +257,7 @@ class SAR_Indexer:
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
             if(not self.already_in_index(j)):
-                self.articles[self.conta]=[self.contd,i,j['title'],j['url']]
+                self.articles[self.conta]=[self.contd,i,j['title'],j['url'],j['all']]
                 if self.multifield:
                     fields=self.fields
                 else:
@@ -360,10 +360,19 @@ class SAR_Indexer:
 
 
         """
-        pass
         ####################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA DE STEMMING ##
         ####################################################
+        for term in self.index['article'].keys():
+            term = term + '$'
+            permuterm_list = []
+
+            i=0
+            while (i < len(term)):
+                term = term[1:] + term[0]
+                permuterm_list.append(term)
+                i = i + 1
+            self.ptindex['article'][term] = len(permuterm_list) +1
 
 
 
@@ -628,7 +637,21 @@ class SAR_Indexer:
         ##################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA PERMUTERM ##
         ##################################################
-        pass
+        self.make_permuterm()
+        if "?" in term:
+            term_query = term + '$'
+            while term_query[-1] is not "?":
+                term_query = term_query[1:] + term_query[0]
+        else:
+            term_query = term + '$'
+            while term_query[-1] is not "*":
+                term_query = term_query[1:] + term_query[0]
+
+        for permuterm_index_elements in self.ptindex:
+            for element in permuterm_index_elements:
+                if element == term_query[:-1]:
+                    return self.index[field][element]
+        return []
 
 
 
