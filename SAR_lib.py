@@ -449,8 +449,8 @@ class SAR_Indexer:
         ## COMPLETAR PARA TODAS LAS VERSIONES ##
         ########################################
 
-
-        conectores = ['AND', 'OR', 'NOT']
+        query = query.lower()
+        conectores = ['and', 'or', 'not']
         query_list = query.split()
 
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
@@ -475,13 +475,13 @@ class SAR_Indexer:
         x = 0
         while x < len(query_list) - 1:
 
-            if query_list[x] == 'NOT':
+            if query_list[x] == 'not':
                 terms_postings[x + 1] = self.reverse_posting(terms_postings.get(x + 1))
 
-            elif query_list[x] == 'AND':
+            elif query_list[x] == 'and':
                 prev_term_posting = terms_postings.get(x - 1)
 
-                if query_list[x + 1] == 'NOT':
+                if query_list[x + 1] == 'not':
                     second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
                     terms_postings[x + 2] = self.and_posting(prev_term_posting, second_term_posting)
                     x += 1
@@ -489,10 +489,10 @@ class SAR_Indexer:
                 else:
                     terms_postings[x + 1] = self.and_posting(prev_term_posting, terms_postings.get(x + 1))
 
-            elif query_list[x] == 'OR':
+            elif query_list[x] == 'or':
                 prev_term_posting = terms_postings.get(x - 1)
 
-                if query_list[x + 1] == 'NOT':
+                if query_list[x + 1] == 'not':
                     second_term_posting = self.reverse_posting(terms_postings.get(x + 2))
                     terms_postings[x + 2] = self.or_posting(prev_term_posting, second_term_posting)
                     x += 1 
@@ -803,7 +803,7 @@ class SAR_Indexer:
                     print(f'>>>>{query}\t{reference} != {result}<<<<')
                     errors = True                    
             else:
-                """print(query)"""
+                print(line)
         return not errors
 
 
