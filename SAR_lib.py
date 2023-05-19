@@ -267,7 +267,6 @@ class SAR_Indexer:
                 else:
                     txt = j['all']
                     tokens=self.tokenize(txt)
-                    self.articles[self.conta]=[self.contd,i,j['title'],j['url']]
                     pos=0
                     for token in tokens:
                         if not self.positional:
@@ -571,7 +570,7 @@ class SAR_Indexer:
 
 
 
-    def get_positionals(self, terms:str, index):
+    def get_positionals(self, terms:str,  field: Optional[str]=None):
         """
 
         Devuelve la posting list asociada a una secuencia de terminos consecutivos.
@@ -583,7 +582,27 @@ class SAR_Indexer:
         return: posting list
 
         """
-        pass
+        res=[];
+        if terms[0] in self.index[field]:
+            for art, postlist in self.index[field][terms[0]].items():
+                seguido = True
+                for pos in postlist:
+                    for term in (term for term in terms[1:] if seguido):
+                        if term in self.index[field]:
+                            if art in self.index[field][term]:
+                                if pos + 1 in self.index[field][term][art]:
+                                    pos += 1
+                                else:
+                                    seguido = False
+                            else:
+                                seguido = False
+                        else:
+                            seguido = False
+
+                if seguido:
+                    res.append(art);
+
+        return res
 
        
         ########################################################
