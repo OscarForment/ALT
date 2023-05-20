@@ -257,7 +257,7 @@ class SAR_Indexer:
         for i, line in enumerate(open(filename)):
             j = self.parse_article(line)
             if(not self.already_in_index(j)):
-                self.articles[self.conta]=[self.contd,i,j['title'],j['url'],j['all']]
+                self.articles[self.conta]=[self.contd,i]
                 if self.multifield:
                     fields=self.fields
                 else:
@@ -479,11 +479,30 @@ class SAR_Indexer:
         query = query.lower()
         conectores = ['and', 'or', 'not']
         query_list = query.split()
+        snippets=[]
 
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
 
         if len(query_list) == 1 and query not in conectores:
-            return self.get_posting(*query_list[0])
+            post = self.get_posting(*query_list[0])
+            if self.show_snippet:
+                for art in post:
+                    aux=[]
+                    doc=open(self.docs[self.articles[art][0]])
+                    lines=doc.readlines()
+                    article=self.parse_article(lines[self.articles[art][1]])
+                    text=article['all']
+                    list_text=text.split()
+                    try:
+                        ind = list_text.index(query_list[0][0])
+                        aux.append(list_text[ind-1]+" "+list_text[ind]+" "+list_text[ind+1])
+                    except ValueError:
+                        ind=0
+                    doc.close()
+                    if aux != []:
+                        snippets.append(aux)
+            return post, snippets
+        
 
         terms_postings = {}
         term_pos = 0
@@ -527,8 +546,26 @@ class SAR_Indexer:
                     terms_postings[x + 1] = self.or_posting(prev_term_posting, terms_postings.get(x + 1))
 
             x += 1
-
-        return terms_postings[len(query_list) - 1]
+        posting_query=terms_postings[len(query_list) - 1]
+        if self.show_snippet:
+            for art in posting_query:
+                aux=[]
+                doc=open(self.docs[self.articles[art][0]])
+                lines=doc.readlines()
+                article=self.parse_article(lines[self.articles[art][1]])
+                text=article['all']
+                list_text=text.split()
+                for q in query_list:
+                    if q not in conectores:
+                        try:
+                            ind = list_text.index(q)
+                            aux.append(list_text[ind-1]+" "+list_text[ind]+" "+list_text[ind+1])
+                        except ValueError:
+                            pass
+                doc.close()
+                if aux != []:
+                    snippets.append(aux)
+        return terms_postings[len(query_list) - 1], snippets
         
 
 
@@ -594,27 +631,25 @@ class SAR_Indexer:
         return: posting list
 
         """
-        res=[];
+        res=[]
         if terms[0] in self.index[field]:
             for art, postlist in self.index[field][terms[0]].items():
+                seguido = True
                 for pos in postlist:
-                    seguido=True
-                    for term in terms[1:]:
+                    for term in (term for term in terms[1:] if seguido):
                         if term in self.index[field]:
                             if art in self.index[field][term]:
                                 if pos + 1 in self.index[field][term][art]:
                                     pos += 1
                                 else:
                                     seguido = False
-                                    break
                             else:
                                 seguido = False
-                                break
                         else:
                             seguido = False
-                            break
+
                 if seguido:
-                    res.append(art);
+                    res.append(art)
 
         return res
 
@@ -662,11 +697,11 @@ class SAR_Indexer:
         self.make_permuterm()
         if "?" in term:
             term_query = term + '$'
-            while term_query[-1] is not "?":
+            while term_query[-1] != "?":
                 term_query = term_query[1:] + term_query[0]
         else:
             term_query = term + '$'
-            while term_query[-1] is not "*":
+            while term_query[-1] != "*":
                 term_query = term_query[1:] + term_query[0]
 
         for permuterm_index_elements in self.ptindex:
@@ -841,7 +876,7 @@ class SAR_Indexer:
         results = []
         for query in ql:
             if len(query) > 0 and query[0] != '#':
-                r = self.solve_query(query)
+                r,_ = self.solve_query(query)
                 results.append(len(r))
                 if verbose:
                     print(f'{query}\t{len(r)}')
@@ -884,7 +919,7 @@ class SAR_Indexer:
         ## COMPLETAR  ##
         ################
 
-        resultado = self.solve_query(query)
+        resultado, snip= self.solve_query(query)
 
         if self.use_ranking:
             resultado = self.rank_result(resultado, query)
@@ -892,17 +927,33 @@ class SAR_Indexer:
         print("===================================================")
         print("Query: ", query)
         if not self.show_all:
-            result=[]
             print("Found in articles (only the first 10 articles): ")
             i=0
             while i<10 and i<len(resultado): 
-                print("    #", i+1, "(", resultado[i], ")", self.articles[resultado[i]][2],":         ", self.articles[resultado[i]][3])
+                doc=open(self.docs[self.articles[resultado[i]][0]])
+                lines=doc.readlines()
+                article=self.parse_article(lines[self.articles[resultado[i]][1]])
+                print("    #", i+1, "(", resultado[i], ")", article['title'],":         ", article['url'])
+                doc.close()
+                if self.show_snippet:
+                    if len(snip)>1:
+                        if len(snip[i])==1:
+                            print("..." + snip[i][0] + "...")
+                        else:
+                            res="..."
+                            for sn in snip[i]:
+                                res = res + sn + "..."
+                            print(res)
                 i+=1
             
         else:
             print("Found in articles: ")
             for i in range(len(resultado)):
-                print("    #", i+1, "(", resultado[i], ")", self.articles[resultado[i]][2],":         ", self.articles[resultado[i]][3])
+                doc=open(self.docs[self.articles[resultado[i]][0]])
+                lines=doc.readlines()
+                article=self.parse_article(lines[self.articles[resultado[i]][1]])
+                print("    #", i+1, "(", resultado[i], ")", article['title'],":         ", article['url'])
+                doc.close()
         
         print("=================================================")
         print("Number of results:", len(resultado))
