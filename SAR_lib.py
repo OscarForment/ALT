@@ -372,20 +372,18 @@ class SAR_Indexer:
             fields = [('all',True)]
         for field,tok in fields:
             for term in self.index[field].keys():
-                term = term + '$'
+                term_perm = term + '$'
                 permuterm_list = []
 
                 i=0
-                while (i < len(term)):
-                    term = term[1:] + term[0]
-                    permuterm_list.append(term)
+                while (i < len(term_perm)):
+                    term_perm = term_perm[1:] + term_perm[0]
+                    permuterm_list.append(term_perm)
                     i = i + 1
                 for pterm in permuterm_list:
                     if pterm not in self.ptindex[field]:
                         self.ptindex[field][pterm]=[]
-                self.ptindex[field][pterm].append(term)
-
-
+                    self.ptindex[field][pterm].append(term)
 
 
     def show_stats(self):
@@ -611,7 +609,7 @@ class SAR_Indexer:
         else:
             index = self.index['all']
         if '*' in term or '?' in term:
-            return self.get_permuterm(term)
+            return self.get_permuterm(term,field)
 
         elif self.use_stemming:
             return self.get_stemming(term, field)
@@ -705,21 +703,34 @@ class SAR_Indexer:
         ##################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA PERMUTERM ##
         ##################################################
+        if field is not None:
+            ptindex = self.ptindex[field]
+        else:
+            ptindex = self.ptindex['all']
         if "?" in term:
             term_query = term + '$'
+            simbolo="?"
             while term_query[-1] != "?":
                 term_query = term_query[1:] + term_query[0]
         else:
             term_query = term + '$'
+            simbolo="*"
             while term_query[-1] != "*":
                 term_query = term_query[1:] + term_query[0]
-
-        for permuterm_index_elements in self.ptindex:
-            for element in permuterm_index_elements:
-                if element == term_query[:-1]:
-                    return self.index[field][element]
-        return []
-
+        permuterm_index_elements=[]
+        for k in ptindex.keys():
+            if k.startswith(term_query[:-1]) and (simbolo == "*" or len(k) == len(term_query[:-1])+1):
+                permuterm_index_elements.append(k)
+        aux=[]
+        for perm_term in permuterm_index_elements:
+            for tk in ptindex[perm_term]:
+                aux.append(self.get_posting(tk))
+        res=[]
+        for posting in aux:
+            for articulo in posting:
+                if articulo not in res:
+                    res.append(articulo)
+        return sorted(res)
 
 
     def reverse_posting(self, p:list):
@@ -903,7 +914,8 @@ class SAR_Indexer:
             if len(line) > 0 and line[0] != '#':
                 query, ref = line.split('\t')
                 reference = int(ref)
-                result = len(self.solve_query(query))
+                r,_ = self.solve_query(query)
+                result = len(r)
                 if reference == result:
                     print(f'{query}\t{result}')
                 else:
