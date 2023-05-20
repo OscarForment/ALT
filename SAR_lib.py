@@ -207,7 +207,8 @@ class SAR_Indexer:
         else:
             print(f"ERROR:{root} is not a file nor directory!", file=sys.stderr)
             sys.exit(-1)
-
+        if self.permuterm:
+            self.make_permuterm()
         ##########################################
         ## COMPLETAR PARA FUNCIONALIDADES EXTRA ##
         ##########################################
@@ -363,16 +364,26 @@ class SAR_Indexer:
         ####################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA DE STEMMING ##
         ####################################################
-        for term in self.index['article'].keys():
-            term = term + '$'
-            permuterm_list = []
+        for field in self.fields:
+            self.ptindex[field[0]]={}
+        if self.multifield:
+            fields=self.fields
+        else:
+            fields = [('all',True)]
+        for field,tok in fields:
+            for term in self.index[field].keys():
+                term = term + '$'
+                permuterm_list = []
 
-            i=0
-            while (i < len(term)):
-                term = term[1:] + term[0]
-                permuterm_list.append(term)
-                i = i + 1
-            self.ptindex['article'][term] = len(permuterm_list) +1
+                i=0
+                while (i < len(term)):
+                    term = term[1:] + term[0]
+                    permuterm_list.append(term)
+                    i = i + 1
+                for pterm in permuterm_list:
+                    if pterm not in self.ptindex[field]:
+                        self.ptindex[field][pterm]=[]
+                self.ptindex[field][pterm].append(term)
 
 
 
@@ -408,9 +419,9 @@ class SAR_Indexer:
 
             if self.multifield:
                 for field, _ in self.fields:
-                    print("Number of permuterms in field" , len(self.ptindex[field]))
+                    print("Number of permuterms in ",field, ": " , len(self.ptindex[field]))
             else:
-                print("Number of permuterms in article ", len(self.ptindex))
+                print("Number of permuterms in article ", len(self.ptindex['all']))
 
         if self.stemming:
             print("---------------------------------------------------")
@@ -694,7 +705,6 @@ class SAR_Indexer:
         ##################################################
         ## COMPLETAR PARA FUNCIONALIDAD EXTRA PERMUTERM ##
         ##################################################
-        self.make_permuterm()
         if "?" in term:
             term_query = term + '$'
             while term_query[-1] != "?":
@@ -954,6 +964,15 @@ class SAR_Indexer:
                 article=self.parse_article(lines[self.articles[resultado[i]][1]])
                 print("    #", i+1, "(", resultado[i], ")", article['title'],":         ", article['url'])
                 doc.close()
+                if self.show_snippet:
+                    if len(snip)>1:
+                        if len(snip[i])==1:
+                            print("..." + snip[i][0] + "...")
+                        else:
+                            res="..."
+                            for sn in snip[i]:
+                                res = res + sn + "..."
+                            print(res)
         
         print("=================================================")
         print("Number of results:", len(resultado))
