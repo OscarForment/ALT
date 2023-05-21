@@ -640,6 +640,8 @@ class SAR_Indexer:
         return: posting list
 
         """
+        if field is None:
+            field='all'
         res=[];
         if terms[0] in self.index[field]:
             for art, postlist in self.index[field][terms[0]].items():
