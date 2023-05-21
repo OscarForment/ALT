@@ -610,10 +610,8 @@ class SAR_Indexer:
             index = self.index['all']
         if '*' in term or '?' in term:
             return self.get_permuterm(term,field)
-
-        elif self.use_stemming:
-            return self.get_stemming(term, field)
-
+        if self.positional:
+            return self.get_positionals(term)
         if index.get(term) is None:
             return []
 
