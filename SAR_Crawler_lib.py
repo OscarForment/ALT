@@ -25,7 +25,7 @@ class SAR_Wiki_Crawler:
 
     def __init__(self):
         # Expresión regular para detectar si es un enlace de la Wikipedia
-        self.wiki_re = re.compile(r"(http(s)?:\/\/(es)\.wikipedia\.org)?\/wiki\/[\w\/_\(\)\%\:]+")
+        self.wiki_re = re.compile(r"(http(s)?:\/\/(es)\.wikipedia\.org)?\/wiki\/[\w\/_\(\)\%]+")
         # Expresión regular para limpiar anclas de editar
         self.edit_re = re.compile(r"\[(editar)\]")
         # Formato para cada nivel de sección
@@ -141,7 +141,7 @@ class SAR_Wiki_Crawler:
         def clean_text(txt):
             return '\n'.join(l for l in txt.split('\n') if len(l) > 0).strip()
 
-        match = self.title_sum_re.match(text)
+        match = self.title_sum_re.match(clean_text(text))
         if not match:
             return None
 
@@ -269,19 +269,22 @@ class SAR_Wiki_Crawler:
             while len(queue) > 0 and total_documents_captured < document_limit and (batch_size is None or i < batch_size):
                 url = hq.heappop(queue)
                 if(self.is_valid_url(url[2])):
-                    visited.add(url[2])
                     if(self.get_wikipedia_entry_content(url[2]) is not None):
                         i+=1
                         texto, links = self.get_wikipedia_entry_content(url[2])
                         enlaces=[]
                         for e in links:
-                            if self.wiki_re.match(e):
-                                enlaces.append("https://es.wikipedia.org"+re.sub("-","_",e))
+                            if self.is_valid_url(e):
+                                enlaces.append(urljoin(url[2],e))
                         for enlace in enlaces:
-                            if enlace not in visited and (url[0]<max_depth_level or max_depth_level is None):
-                                hq.heappush(queue, (url[0]+1,"",enlace))
-                        documents.append(self.parse_wikipedia_textual_content(texto, url[2]))
-                        total_documents_captured += 1
+                            if enlace not in visited and (url[0]<max_depth_level or max_depth_level is None) and enlace not in to_process:
+                                hq.heappush(queue, (url[0]+1,url[2],enlace))
+                                to_process.add(enlace)
+                        art = self.parse_wikipedia_textual_content(texto, url[2])
+                        if art is not None:
+                            documents.append(art)
+                            total_documents_captured += 1
+                    visited.add(url[2])
             files_count+=1
             self.save_documents(documents,base_filename,files_count,total_files)
 
