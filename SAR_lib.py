@@ -790,7 +790,7 @@ class SAR_Indexer:
         aux=[]
         for perm_term in permuterm_index_elements:
             for tk in ptindex[perm_term]:
-                aux.append(self.get_posting(tk))
+                aux.append(self.get_posting(tk,field))
         res=[]
         for posting in aux:
             for articulo in posting:
