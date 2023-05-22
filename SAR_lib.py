@@ -652,8 +652,10 @@ class SAR_Indexer:
                                     pos += 1
                                 else:
                                     seguido = False
+                                    break
                             else:
                                 seguido = False
+                                break
                         else:
                             seguido = False
                             break
