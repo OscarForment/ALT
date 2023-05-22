@@ -568,7 +568,7 @@ class SAR_Indexer:
                         if aux != []:
                             snippets.append(aux)
             return post, snippets
-        #print(query_list)
+        #print(len(query_list[0]))
         terms_postings = {}
         term_pos = 0
         for term in query_list:
@@ -576,19 +576,20 @@ class SAR_Indexer:
                 if term[0] not in conectores:
                     terms_postings[term_pos] = self.get_posting(*term)
             else:
-                if len(term)==2 and term[1] in campos:
+                if len(term)==2 and term[1] in campos and type(term[0])==str:
                     terms_postings[term_pos] = self.get_posting(*term)
                 else:
                     terms_postings[term_pos] = self.get_positionals(*term)
 
             term_pos = term_pos + 1
-        #print(query_list)
         auxiliar_query=[]
         for sublist in query_list:
             if len(sublist) == 1:
                 auxiliar_query.append(sublist[0])
-            else:
+            elif type(sublist)==str:
                 auxiliar_query.append(' '.join(sublist))
+            else:
+                auxiliar_query.append(' '.join(sublist[0]))
         query_list=auxiliar_query
         x = 0
         while x < len(query_list) - 1:
