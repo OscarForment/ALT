@@ -110,7 +110,6 @@ class SAR_Wiki_Crawler:
 
             # Eliminamos el texto de las anclas de editar
             text = self.edit_re.sub('', text)
-
             return text, sorted(list(urls))
 
         return None

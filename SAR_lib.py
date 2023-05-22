@@ -487,29 +487,74 @@ class SAR_Indexer:
 
         query = query.lower()
         conectores = ['and', 'or', 'not']
+        campos = ['title','summary','all','section-name','url']
         query_list = query.split()
         snippets=[]
-
+        i=0
+        pos_query=[]
+        
+        pos_bool=False
+        
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
-
+        while i < len(query_list):
+            if query_list[i][0].startswith('"'):
+                j=i+1
+                auxiliar_query=[]
+                auxiliar_query.append(query_list[i][0][1:])
+                while not query_list[j][0].endswith('"'):
+                    auxiliar_query.append(query_list[j][0])
+                    j+=1
+                auxiliar_query.append(query_list[j][0][:-1])
+                
+                if j==len(query_list)-1:
+                    query_list=query_list[:i]
+                    query_list.append(auxiliar_query)
+                else:
+                    pos_query=query_list[:i]
+                    pos_query.append(auxiliar_query)
+                    for e in query_list[j+1:]:
+                        pos_query.append(e)
+                    query_list=pos_query
+                i=j
+            else:
+                i+=1
         if len(query_list) == 1 and query not in conectores:
-            post = self.get_posting(*query_list[0])
-            if self.show_snippet:
-                for art in post:
-                    aux=[]
-                    doc=open(self.docs[self.articles[art][0]])
-                    lines=doc.readlines()
-                    article=self.parse_article(lines[self.articles[art][1]])
-                    text=article['all']
-                    list_text=text.split()
-                    try:
-                        ind = list_text.index(query_list[0][0])
-                        aux.append(list_text[ind-1]+" "+list_text[ind]+" "+list_text[ind+1])
-                    except ValueError:
-                        ind=0
-                    doc.close()
-                    if aux != []:
-                        snippets.append(aux)
+            if len(query_list[0])==2 and query_list[0][1] in campos:
+                post = self.get_posting(*query_list[0])
+                if self.show_snippet:
+                    for art in post:
+                        aux=[]
+                        doc=open(self.docs[self.articles[art][0]])
+                        lines=doc.readlines()
+                        article=self.parse_article(lines[self.articles[art][1]])
+                        text=article['all']
+                        list_text=text.split()
+                        try:
+                            ind = list_text.index(query_list[0][0])
+                            aux.append(list_text[ind-1]+" "+list_text[ind]+" "+list_text[ind+1])
+                        except ValueError:
+                            ind=0
+                        doc.close()
+                        if aux != []:
+                            snippets.append(aux)
+            else:
+                post= self.get_positionals(query_list[0])
+                if self.show_snippet:
+                    for art in post:
+                        aux=[]
+                        doc=open(self.docs[self.articles[art][0]])
+                        lines=doc.readlines()
+                        article=self.parse_article(lines[self.articles[art][1]])
+                        text=article['all']
+                        list_text=text.split()
+                        try:
+                            ind = list_text.index(query_list[0][0])
+                            aux.append(list_text[ind-1]+" "+list_text[ind]+" "+list_text[ind+1])
+                        except ValueError:
+                            ind=0
+                        doc.close()
+                        if aux != []:
+                            snippets.append(aux)
             return post, snippets
         
 
@@ -521,12 +566,20 @@ class SAR_Indexer:
                 if term[0] not in conectores:
                     terms_postings[term_pos] = self.get_posting(*term)
             else:
-                terms_postings[term_pos] = self.get_posting(*term)
+                if len(term)==2 and term[1] in campos:
+                    terms_postings[term_pos] = self.get_posting(*term)
+                else:
+                    terms_postings[term_pos] = self.get_positionals(term)
 
             term_pos = term_pos + 1
 
-        query_list = query.split()
-
+        auxiliar_query=[]
+        for sublist in query_list:
+            if len(sublist) == 1:
+                auxiliar_query.append(sublist[0])
+            else:
+                auxiliar_query.append(' '.join(sublist))
+        query_list=auxiliar_query
         x = 0
         while x < len(query_list) - 1:
 
@@ -640,7 +693,7 @@ class SAR_Indexer:
         """
         if field is None:
             field='all'
-        res=[];
+        res=[]
         if terms[0] in self.index[field]:
             for art, postlist in self.index[field][terms[0]].items():
                 for pos in postlist:
@@ -660,7 +713,7 @@ class SAR_Indexer:
                     if seguido:
                         break
                 if seguido:
-                    res.append(art);
+                    res.append(art)
 
         return res
 
