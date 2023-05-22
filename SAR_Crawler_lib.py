@@ -147,18 +147,23 @@ class SAR_Wiki_Crawler:
         title = match.group('title')
         summary = match.group('summary')
         sections_dict = []
+        #Obtengo una lista con los textos de cada sección
         sections_text = self.sections_re.split(match.group('rest'))
+        #Obtengo una lista con los nombres de cada sección
         sections_names = self.sections_re.findall(match.group('rest'))
         i=1
         for s_name in sections_names:
+            #Junto el nombre con el texto
             section = s_name+sections_text[i]
             i= i+1
+            #Y hago match sobre todo para poder obtenerlo bien separado
             section_match = self.section_re.match(section)
             name = section_match.group('name')
             text = section_match.group('text')
             rest = section_match.group('rest')
             subsections_dict = []
             j=1
+            #Hago lo mismo con las subsecciones
             subsections_text = self.subsections_re.split(rest)
             subsections_names = self.subsections_re.findall(rest)
             for sub_name in subsections_names:
@@ -266,6 +271,7 @@ class SAR_Wiki_Crawler:
             i=0
             documents: List[dict] = []
             while len(queue) > 0 and total_documents_captured < document_limit and (batch_size is None or i < batch_size):
+                #Obtengo el primer valor de la cola
                 url = hq.heappop(queue)
                 if(self.is_valid_url(url[2])):
                     if(self.get_wikipedia_entry_content(url[2]) is not None):
@@ -274,7 +280,9 @@ class SAR_Wiki_Crawler:
                         enlaces=[]
                         for e in links:
                             if self.is_valid_url(e):
+                                #Fusiono el enlace padre con el hijo porque el hijo no trae toda la primera parte del enlace
                                 enlaces.append(urljoin(url[2],e))
+                        #Recorro los enlaces obtenidos y los añado a la cola solo si no los he visitido, si no los he leido ya antes y si su profundidad no supera el máx
                         for enlace in enlaces:
                             if enlace not in visited and (url[0]<max_depth_level or max_depth_level is None) and enlace not in to_process:
                                 hq.heappush(queue, (url[0]+1,url[2],enlace))

@@ -263,6 +263,7 @@ class SAR_Indexer:
                     fields=self.fields
                 else:
                     fields = [('all',True)]
+                #Se recorren todos los campos si está activado multifield o se recorre solo el campo 'all'
                 for field,tok in fields:
                     txt = j[field]
                     if tok:
@@ -492,8 +493,9 @@ class SAR_Indexer:
         snippets=[]
         i=0
         pos_query=[]
-        
+        #Detectamos si se están buscando palabras en un campo en concreto del artículo
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
+        #Juntamos las palabras entre comillas respetando el campo en el que se buscaba
         while i < len(query_list):
             campo=""
             if len(query_list[i])==2 and query_list[i][1] in campos:
@@ -530,9 +532,12 @@ class SAR_Indexer:
                 i+=1
             else:
                 i+=1
+        #Si la consulta es solo una palabra se devuelve la posting list
         if len(query_list) == 1 and query not in conectores:
+            #Si una sola palabra con un campo en el que buscar o si es una sola palabra entre comillas se realiza lo mismo
             if (len(query_list[0])==2 and query_list[0][1] in campos and type(query_list[0][0])==str) or (len(query_list[0])==1 and type(query_list[0][0])==str):
                 post = self.get_posting(*query_list[0])
+                #Se obtienen los snippets
                 if self.show_snippet:
                     for art in post:
                         aux=[]
@@ -542,6 +547,7 @@ class SAR_Indexer:
                         text=article['all']
                         list_text=text.split()
                         try:
+                            #Se busca la palabra en el artículo
                             ind = list_text.index(query_list[0][0])
                             aux.append(list_text[ind-1]+" "+list_text[ind]+" "+list_text[ind+1])
                         except ValueError:
@@ -549,6 +555,7 @@ class SAR_Indexer:
                         doc.close()
                         if aux != []:
                             snippets.append(aux)
+            #En cambio si se trata de una sola expresión entre comillas se utiliza el siguiente código
             else:
                 post= self.get_positionals(*query_list[0])
                 if self.show_snippet:
@@ -568,9 +575,9 @@ class SAR_Indexer:
                         if aux != []:
                             snippets.append(aux)
             return post, snippets
-        #print(len(query_list[0]))
         terms_postings = {}
         term_pos = 0
+        #Si es más de una palabra se calcula la posting list de cada palabra siempre y cuando no sea un operador lógico
         for term in query_list:
             if len(term) == 1 and type(term[0])==str:
                 if term[0] not in conectores:
@@ -583,6 +590,7 @@ class SAR_Indexer:
 
             term_pos = term_pos + 1
         auxiliar_query=[]
+        #Para las búsquedas posicionales he anidado en listas pero el resto de métodos funciona con string por lo tanto desempaqueto la lista
         for sublist in query_list:
             if len(sublist) == 1:
                 auxiliar_query.append(sublist[0])
@@ -592,6 +600,7 @@ class SAR_Indexer:
                 auxiliar_query.append(' '.join(sublist[0]))
         query_list=auxiliar_query
         x = 0
+        #Se realizan las operaciones lógicas
         while x < len(query_list) - 1:
 
             if query_list[x] == 'not':
@@ -620,6 +629,7 @@ class SAR_Indexer:
 
             x += 1
         posting_query=terms_postings[len(query_list) - 1]
+        #Se obtienen los snippets
         if self.show_snippet:
             for art in posting_query:
                 aux=[]
