@@ -673,8 +673,6 @@ class SAR_Indexer:
             index = self.index['all']
         if '*' in term or '?' in term:
             return self.get_permuterm(term,field)
-        if '"' in term:
-            return self.get_positionals(term)
         if index.get(term) is None:
             return []
 
@@ -715,8 +713,10 @@ class SAR_Indexer:
                                     pos += 1
                                 else:
                                     seguido = False
+                                    break
                             else:
                                 seguido = False
+                                break
                         else:
                             seguido = False
                             break
