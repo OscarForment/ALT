@@ -493,10 +493,11 @@ class SAR_Indexer:
         i=0
         pos_query=[]
         
-        pos_bool=False
-        
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
         while i < len(query_list):
+            campo=""
+            if len(query_list[i])==2 and query_list[i][1] in campos:
+                campo=query_list[i][1]
             if query_list[i][0].startswith('"') and not query_list[i][0].endswith('"'):
                 j=i+1
                 auxiliar_query=[]
@@ -505,6 +506,10 @@ class SAR_Indexer:
                     auxiliar_query.append(query_list[j][0])
                     j+=1
                 auxiliar_query.append(query_list[j][0][:-1])
+                if campo != "":
+                    auxiliar_query = [auxiliar_query,campo]
+                else:
+                    auxiliar_query = [auxiliar_query]
                 
                 if j==len(query_list)-1:
                     query_list=query_list[:i]
@@ -525,9 +530,8 @@ class SAR_Indexer:
                 i+=1
             else:
                 i+=1
-        
         if len(query_list) == 1 and query not in conectores:
-            if len(query_list[0])==2 and query_list[0][1] in campos:
+            if (len(query_list[0])==2 and query_list[0][1] in campos and type(query_list[0][0])==str) or (len(query_list[0])==1 and type(query_list[0][0])==str):
                 post = self.get_posting(*query_list[0])
                 if self.show_snippet:
                     for art in post:
@@ -546,7 +550,7 @@ class SAR_Indexer:
                         if aux != []:
                             snippets.append(aux)
             else:
-                post= self.get_positionals(query_list[0])
+                post= self.get_positionals(*query_list[0])
                 if self.show_snippet:
                     for art in post:
                         aux=[]
@@ -564,23 +568,21 @@ class SAR_Indexer:
                         if aux != []:
                             snippets.append(aux)
             return post, snippets
-        
-
+        #print(query_list)
         terms_postings = {}
         term_pos = 0
-
         for term in query_list:
-            if len(term) == 1:
+            if len(term) == 1 and type(term[0])==str:
                 if term[0] not in conectores:
                     terms_postings[term_pos] = self.get_posting(*term)
             else:
                 if len(term)==2 and term[1] in campos:
                     terms_postings[term_pos] = self.get_posting(*term)
                 else:
-                    terms_postings[term_pos] = self.get_positionals(term)
+                    terms_postings[term_pos] = self.get_positionals(*term)
 
             term_pos = term_pos + 1
-
+        #print(query_list)
         auxiliar_query=[]
         for sublist in query_list:
             if len(sublist) == 1:
