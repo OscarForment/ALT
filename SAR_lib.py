@@ -497,7 +497,7 @@ class SAR_Indexer:
         
         query_list = list(map(lambda tk: tk.split(':')[::-1] if ':' in tk else [tk], query_list))
         while i < len(query_list):
-            if query_list[i][0].startswith('"'):
+            if query_list[i][0].startswith('"') and not query_list[i][0].endswith('"'):
                 j=i+1
                 auxiliar_query=[]
                 auxiliar_query.append(query_list[i][0][1:])
@@ -516,8 +516,16 @@ class SAR_Indexer:
                         pos_query.append(e)
                     query_list=pos_query
                 i=j
+            elif query_list[i][0].startswith('"') and query_list[i][0].endswith('"'):
+                pos_query=query_list[:i]
+                pos_query.append([query_list[i][0][1:-1]])
+                for e in query_list[i+1:]:
+                    pos_query.append(e)
+                query_list=pos_query
+                i+=1
             else:
                 i+=1
+        print(query_list)
         if len(query_list) == 1 and query not in conectores:
             if len(query_list[0])==2 and query_list[0][1] in campos:
                 post = self.get_posting(*query_list[0])
