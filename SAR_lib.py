@@ -525,7 +525,7 @@ class SAR_Indexer:
                 i+=1
             else:
                 i+=1
-        print(query_list)
+        
         if len(query_list) == 1 and query not in conectores:
             if len(query_list[0])==2 and query_list[0][1] in campos:
                 post = self.get_posting(*query_list[0])
