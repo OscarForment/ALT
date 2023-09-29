@@ -82,10 +82,49 @@ def levenshtein_reduccion(x, y, threshold=None):
 
 def levenshtein(x, y, threshold):
     # completar versión reducción coste espacial y parada por threshold
-    return min(0,threshold+1) # COMPLETAR Y REEMPLAZAR ESTA PARTE
+    lenX, lenY = len(x), len(y)
+    cprev = np.zeros(lenX+1,int)
+    ccurrent = np.zeros(lenX+1,int)
+    for j in range(1, lenX + 1):#inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
+        ccurrent[j] = ccurrent[j - 1] + 1
+    for i in range (1,lenY+1):#se recorre toda la palabra final
+        cprev,ccurrent=ccurrent,cprev
+        ccurrent[0] = cprev[0] + 1 #en la fila 0 solo se puede hacer inserción que tiene coste 1
+        for j in range(1, lenX + 1):
+            ccurrent[j] = min(
+                cprev[j] + 1,
+                ccurrent[j - 1] + 1,
+                cprev[j - 1] + (x[j - 1] != y[i - 1]),
+            )
+        if min(ccurrent)>threshold:
+            return threshold+1 
+    return ccurrent[lenX] # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 def levenshtein_cota_optimista(x, y, threshold):
-    return 0 # COMPLETAR Y REEMPLAZAR ESTA PARTE
+    lenX, lenY = len(x), len(y)
+    diccionario = {}
+    for key in x:
+        if key in diccionario:
+            diccionario[key] += 1
+        else:
+            diccionario[key] = 1
+    for key in y:
+        if key in diccionario:
+            diccionario[key] -= 1
+        else:
+            diccionario[key] = -1
+    sumPos, sumNeg = 0, 0
+    for clave in diccionario:
+        if diccionario[clave] < 0:
+            sumNeg += diccionario[clave]
+        else:
+            sumPos += diccionario[clave]
+    if max(sumPos, abs(sumNeg)) < threshold:
+        return levenshtein(x,y, threshold)
+
+    else:
+        return threshold + 1
+         # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 def damerau_restricted_matriz(x, y, threshold=None):
     # completar versión Damerau-Levenstein restringida con matriz
