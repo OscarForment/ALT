@@ -4,7 +4,7 @@ def levenshtein_matriz(x, y, threshold=None):
     # esta versión no utiliza threshold, se pone porque se puede
     # invocar con él, en cuyo caso se ignora
     lenX, lenY = len(x), len(y)
-    D = np.zeros((lenX + 1, lenY + 1), dtype=np.int)
+    D = np.zeros((lenX + 1, lenY + 1), dtype=int)
     for i in range(1, lenX + 1):
         D[i][0] = D[i - 1][0] + 1
     for j in range(1, lenY + 1):
@@ -63,7 +63,22 @@ def levenshtein_edicion(x, y, threshold=None):
 
 def levenshtein_reduccion(x, y, threshold=None):
     # completar versión con reducción coste espacial
-    return 0 # COMPLETAR Y REEMPLAZAR ESTA PARTE
+    lenX, lenY = len(x), len(y)
+    cprev = np.zeros(lenX+1,int)
+    ccurrent = np.zeros(lenX+1,int)
+    for j in range(1, lenX + 1):#inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
+        ccurrent[j] = ccurrent[j - 1] + 1
+    for i in range (1,lenY+1):#se recorre toda la palabra final
+        cprev,ccurrent=ccurrent,cprev
+        ccurrent[0] = cprev[0] + 1 #en la fila 0 solo se puede hacer inserción que tiene coste 1
+        for j in range(1, lenX + 1):
+            ccurrent[j] = min(
+                cprev[j] + 1,
+                ccurrent[j - 1] + 1,
+                cprev[j - 1] + (x[j - 1] != y[i - 1]),
+            )
+
+    return ccurrent[lenX] # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 def levenshtein(x, y, threshold):
     # completar versión reducción coste espacial y parada por threshold
@@ -76,7 +91,7 @@ def damerau_restricted_matriz(x, y, threshold=None):
     # completar versión Damerau-Levenstein restringida con matriz
     lenX, lenY = len(x), len(y)
     # COMPLETAR
-    return D[lenX, lenY]
+    return 0#D[lenX, lenY]
 
 def damerau_restricted_edicion(x, y, threshold=None):
     # partiendo de damerau_restricted_matriz añadir recuperar
@@ -85,11 +100,11 @@ def damerau_restricted_edicion(x, y, threshold=None):
 
 def damerau_restricted(x, y, threshold=None):
     # versión con reducción coste espacial y parada por threshold
-     return min(0,threshold+1) # COMPLETAR Y REEMPLAZAR ESTA PARTE
+     return 0#min(0,threshold+1) # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 def damerau_intermediate_matriz(x, y, threshold=None):
     # completar versión Damerau-Levenstein intermedia con matriz
-    return D[lenX, lenY]
+    return 0#D[lenX, lenY]
 
 def damerau_intermediate_edicion(x, y, threshold=None):
     # partiendo de matrix_intermediate_damerau añadir recuperar
@@ -99,7 +114,7 @@ def damerau_intermediate_edicion(x, y, threshold=None):
     
 def damerau_intermediate(x, y, threshold=None):
     # versión con reducción coste espacial y parada por threshold
-    return min(0,threshold+1) # COMPLETAR Y REEMPLAZAR ESTA PARTE
+    return 0#min(0,threshold+1) # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 opcionesSpell = {
     'levenshtein_m': levenshtein_matriz,
