@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import distancias
 
 class SpellSuggester:
 
@@ -24,6 +25,8 @@ class SpellSuggester:
            default_threshold un entero positivo
 
         """
+        if dist_functions is None:
+            dist_functions = distancias.opcionesSpell
         self.distance_functions = dist_functions
         self.set_vocabulary(vocab)
         if default_distance is None:
@@ -54,7 +57,7 @@ class SpellSuggester:
         if isinstance(vocabulary,list):
             self.vocabulary = vocabulary # atención! nos quedamos una referencia, a tener en cuenta
         elif isinstance(vocabulary,str):
-            self.vocabulary = self.build_vocab(vocabulary)
+            self.vocabulary = self.build_vocabulary(vocabulary)
         else:
             raise Exception("SpellSuggester incorrect vocabulary value")
 

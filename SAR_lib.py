@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 from typing import Optional, List, Union, Dict
 import pickle
+from spellsuggester import SpellSuggester
+from distancias import *
 
 """Autores:
         Calero Jimenez, David
@@ -49,7 +51,7 @@ class SAR_Indexer:
     SHOW_MAX = 10
 
     all_atribs = ['urls', 'index', 'sindex', 'ptindex', 'docs', 'weight', 'articles',
-                  'tokenizer', 'stemmer', 'show_all', 'use_stemming']
+                  'tokenizer', 'stemmer', 'show_all', 'use_stemming','use_spelling','speller'] #Añadidos los atributos 'use_spelling' y 'speller'
 
     def __init__(self):
         """
@@ -75,6 +77,10 @@ class SAR_Indexer:
         self.show_snippet = False # valor por defecto, se cambia con self.set_snippet()
         self.use_stemming = False # valor por defecto, se cambia con self.set_stemming()
         self.use_ranking = False  # valor por defecto, se cambia con self.set_ranking()
+
+        #Atributos añadidos para ALT
+        self.use_spelling = False
+        self.speller = None
 
 
     ###############################
@@ -127,6 +133,26 @@ class SAR_Indexer:
 
         """
         self.use_stemming = v
+
+
+    #Método añadido para ALT
+    def set_spelling(self, use_spelling:bool, distance:str=None,
+                     threshold:int=None):
+        """
+        self.use_spelling a True activa la corrección ortográfica
+        EN LAS PALABRAS NO ENCONTRADAS, en caso contrario NO utilizará
+        corrección ortográfica
+
+        input:  "use_spell" booleano, determina el uso del corrector.
+                "distance" cadena, nombre de la función de distancia.
+                "threshold" entero, umbral del corrector
+        """
+        self.use_spelling = use_spelling
+        self.speller = SpellSuggester(
+            dist_functions = opcionesSpell,
+            vocab = list(self.index['all'].keys()),
+            default_distance=distance,
+            default_threshold=threshold)
 
 
 
@@ -685,7 +711,22 @@ class SAR_Indexer:
         if '*' in term or '?' in term:
             return self.get_permuterm(term,field)
         if index.get(term) is None:
-            return []
+            if self.use_spelling:
+                res=[]
+                lista_terminos = self.speller.suggest(term)
+                if len(lista_terminos)>0:
+                    for i in range(0,len(lista_terminos)):
+                        if index.get(lista_terminos[i]) is None:
+                            continue
+                        else:
+                            prev_repetidos= list(index.get(lista_terminos[i]))
+                            prev = []
+                            for j in prev_repetidos:
+                                if j not in prev:
+                                    prev.append(j)
+                            res = self.or_posting(res,prev)
+                return res
+            else: return []
 
         else:
             res_repetidos= list(index.get(term))

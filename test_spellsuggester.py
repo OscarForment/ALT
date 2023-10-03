@@ -10,6 +10,8 @@ def testear_suggester():
         "ancho",
         "ecrvantse",
         "uqijoext",
+        "iluminación",
+        "iluminaciónx",
     ]
     spellsuggester = SpellSuggester(
         dist_functions = opcionesSpell,
