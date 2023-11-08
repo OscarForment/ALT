@@ -285,23 +285,35 @@ def damerau_intermediate_edicion(x, y, threshold=None):
             i-=1
             j-=1
         elif D[i-2][j-2] + 1 == min_move and D[i][j] == D[i-2][j-2] + 1: # comprobamos que es un intercambio
-            str1, str2 = ""
-            str1, str1 += x[i-2], x[i-1]
-            str2, str2 += y[i-1], y[i-2]
+            str1 = ""
+            str2 = ""
+            str1 += x[i-2]
+            str1 += x[i-1]
+            str2 += y[i-1]
+            str2 += y[i-2]
             camino.append((str1,str2))
-            i, j -= 2, 2
+            i -= 2
+            j -= 2
         elif D[i-2][j-3] + 2 == min_move and D[i][j] == D[i-2][j-3] + 2: # comprobamos que es un intercambio
-            str1, str2 = ""
-            str1, str1 += x[i-3], x[i-2]
-            str2, str2 += y[i-2], y[i-3]
+            str1 = ""
+            str2 = ""
+            str1 += x[i-3]
+            str1 += x[i-2]
+            str2 += y[i-2]
+            str2 += y[i-3]
             camino.append((str1,str2))
-            i, j -= 2, 2
+            i -= 2
+            j -= 3
         elif D[i-3][j-2] + 2 == min_move and D[i][j] == D[i-3][j-2] + 2: # comprobamos que es un intercambio
-            str1, str2 = ""
-            str1, str1 += x[i-2], x[i-3]
-            str2, str2 += y[i-3], y[i-2]
+            str1 = ""
+            str2 = ""
+            str1 += x[i-2]
+            str1 += x[i-3]
+            str2 += y[i-3]
+            str2 += y[i-2]
             camino.append((str1,str2))
-            i, j -= 2, 2
+            i -= 3
+            j -= 2
         while i>0: #por si solo quedan operaciones de borrado
             camino.append((x[i-1],""))
             i-=1
@@ -313,7 +325,7 @@ def damerau_intermediate_edicion(x, y, threshold=None):
     return D[lenX, lenY],camino
 
     # completar versión Damerau-Levenstein intermedia con matriz
-    return 0,[] # COMPLETAR Y REEMPLAZAR ESTA PARTE
+   
     
 def damerau_intermediate(x, y, threshold=None):
     # versión con reducción coste espacial y parada por threshold
