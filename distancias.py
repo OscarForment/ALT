@@ -244,6 +244,23 @@ def damerau_intermediate_edicion(x, y, threshold=None):
     # secuencia de operaciones de edición
 
     # COPIAR CODIGO DE DAMERAU_INTERMEDIATE_MATRIZ
+
+    lenX, lenY = len(x), len(y)
+    D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+    for i in range(1, lenX + 1):
+        D[i][0] = D[i - 1][0] + 1
+    for j in range(1, lenY + 1):
+        D[0][j] = D[0][j - 1] + 1
+        for i in range(1, lenX + 1):
+            D[i][j] = min(
+                D[i - 1][j] + 1,
+                D[i][j - 1] + 1,
+                D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
+                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] & x[i - 1]==y[j - 2]),
+                D[i - 3][j - 2] + 2*((x[i - 3] == y[j - 1]) & (x[i - 1] == y[j - 2])),
+                D[i - 2][j - 3] + 2*((x[i - 2] == y[j - 1]) & (x[i - 1] == y[j - 3])),
+
+            )
     
     camino=[]
     i=lenX
