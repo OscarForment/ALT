@@ -126,7 +126,7 @@ def levenshtein_cota_optimista(x, y, threshold):
             sumNeg += diccionario[clave]
         else:
             sumPos += diccionario[clave]
-    if max(sumPos, abs(sumNeg)) < threshold:
+    if max(sumPos, abs(sumNeg)) <= threshold:
         return levenshtein(x,y, threshold)
     else:
         return threshold + 1
@@ -143,9 +143,15 @@ def damerau_restricted_matriz(x, y, threshold=None):
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
-                D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
+                D[i - 1][j - 1] + (x[i - 1] != y[j - 1])
             )
+
+            if i > 1 and j > 1:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
+                )
+                
     return D[lenX, lenY]
 
 def damerau_restricted_edicion(x, y, threshold=None):
@@ -250,14 +256,62 @@ def damerau_intermediate_matriz(x, y, threshold=None):
     for j in range(1, lenY + 1):
         D[0][j] = D[0][j - 1] + 1
         for i in range(1, lenX + 1):
+            """
+            if i >2 and j>2:
+                D[i][j] = min(
+                    D[i - 1][j] + 1,
+                    D[i][j - 1] + 1,
+                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
+                    D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
+                    D[i - 2][j - 3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
+                )
+            elif i >1 and j>2:
+                D[i][j] = min(
+                    D[i - 1][j] + 1,
+                    D[i][j - 1] + 1,
+                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
+                    D[i - 2][j - 3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
+                )
+            elif i >1 and j>1:
+                D[i][j] = min(
+                    D[i - 1][j] + 1,
+                    D[i][j - 1] + 1,
+                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
+                )
+            else:
+                D[i][j] = min(
+                    D[i - 1][j] + 1,
+                    D[i][j - 1] + 1,
+                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
+                )"""
+            
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
-                D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
-                D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
-                D[i - 2][j - 3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
+                D[i - 1][j - 1] + (x[i - 1] != y[j - 1])
             )
+
+            if i > 1 and j > 1:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
+                )
+            
+            if i > 2 and j > 1:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2]))
+                )
+            
+            if i > 1 and j > 2:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 2][j - 3] + 3 - ((x[i - 1] == y[j - 3]) and (x[i - 2] == y[j - 1]))
+                )
+
     return D[lenX, lenY]
 
 def damerau_intermediate_edicion(x, y, threshold=None):
@@ -306,22 +360,10 @@ def damerau_intermediate_edicion(x, y, threshold=None):
             i -= 2
             j -= 2
         elif D[i-2][j-3]== min_move and D[i][j] == D[i-2][j-3] + 2: # comprobamos que es un intercambio
-            #str1 = ""
-            #str2 = ""
-            #str1 += x[i-3]
-            #str1 += x[i-2]
-            #str2 += y[i-2]
-            #str2 += y[i-3]
             camino.append((x[i-2]+x[i-1],y[j-3]+y[j-2]+y[j-1]))
             i -= 2
             j -= 3
         elif D[i-3][j-2]== min_move and D[i][j] == D[i-3][j-2] + 2: # comprobamos que es un intercambio
-            #str1 = ""
-            #str2 = ""
-            #str1 += x[i-2]
-            #str1 += x[i-3]
-            #str2 += y[i-3]
-            #str2 += y[i-2]
             camino.append((x[i-3]+x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i -= 3
             j -= 2
@@ -352,22 +394,47 @@ def damerau_intermediate(x, y, threshold=None):
     ccurrent = np.zeros(lenX+1,int)
     #Para ordenarnos mejor, ahora vamos a usar j e i tal y como se hace en los ejemplos
     for i in range(1, lenX + 1): #Recorriendo la matriz verticalmente, pues la columna se mantiene constante
-        ccurrent[i] = ccurrent[i - 1] + 1 #Se inicializan los elementos de la columna inicial
+        cprev[i] = cprev[i - 1] + 1 #Se inicializan los elementos de la columna inicial
     for j in range (1, lenY+1): #Recorriendo la matriz horizontalmente
-        cprev3,cprev2,cprev,ccurrent = cprev2,cprev,ccurrent,cprev3
+        #cprev3,cprev2,cprev,ccurrent = cprev2,cprev,ccurrent,cprev3
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
+
+        parada = True
+        if ccurrent[0] <= threshold: parada = False
+        elif ccurrent[0] == threshold and lenX - i == lenY - j: parada = False
+
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
+            
             ccurrent[i] = min(
-            cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
-            ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
-            cprev[i - 1] + (x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-            cprev2[i - 2] +2-((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
-            #Equivalente a [i -2] con cprev2, [j-2]
-            cprev3[i-2] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
-            cprev2[i-3] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
+                cprev[i] + 1,
+                ccurrent[i - 1] + 1,
+                cprev[i - 1] + (x[i - 1] != y[j - 1])
             )
-        if min(ccurrent)>threshold: return threshold+1 
-    return ccurrent[lenX]
+
+            if i > 1 and j > 1:
+                ccurrent[i] = min(
+                    ccurrent[i],
+                    cprev2[i - 2] + 2 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2]))
+                )
+
+            if i > 2 and j > 1:
+                ccurrent[i] = min(
+                    ccurrent[i],
+                    cprev2[i - 3] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2]))
+                )
+
+            if i > 1 and j > 2:
+                ccurrent[i] = min(
+                    ccurrent[i],
+                    cprev3[i - 2] + 3 - ((x[i - 1] == y[j - 3]) and (x[i - 2] == y[j - 1]))
+                )
+                
+            if ccurrent[i] < threshold: parada = False
+            elif ccurrent[i] == threshold and lenX - i == lenY - j: parada = False
+            
+        if parada: return threshold+1 
+        cprev, ccurrent, cprev2, cprev3 = ccurrent, cprev3, cprev, cprev2
+    return cprev[lenX]
 
 opcionesSpell = {
     'levenshtein_m': levenshtein_matriz,
