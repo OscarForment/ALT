@@ -189,18 +189,31 @@ def damerau_restricted_edicion(x, y, threshold=None):
     # partiendo de damerau_restricted_matriz añadir recuperar
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
-    
+
     for i in range(1, lenX + 1):
+        # Inicializamos la matriz de distancias (Eje X)
         D[i][0] = D[i - 1][0] + 1
+
     for j in range(1, lenY + 1):
+        # Inicializamos la matriz de distancias (Eje Y)
         D[0][j] = D[0][j - 1] + 1
+
         for i in range(1, lenX + 1):
+            # Almacenamos en la posicion (i,j) el valor mínimo entre las tres operaciones
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
-                D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
+                D[i - 1][j - 1] + (x[i - 1] != y[j - 1])
             )
+
+            # Calculamos, teniendo en cuenta la restricción al avanzar 2 posiciones atrás,
+            # el valor con la transposición
+            if i > 1 and j > 1:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
+                )
+                
     # secuencia de operaciones de edición
     camino=[]
     i=lenX
@@ -336,19 +349,46 @@ def damerau_intermediate_edicion(x, y, threshold=None):
 
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+
+    # Inicializamos la matriz de distancias (Eje X)
     for i in range(1, lenX + 1):
         D[i][0] = D[i - 1][0] + 1
+
+    # Inicializamos la matriz de distancias (Eje Y)
     for j in range(1, lenY + 1):
         D[0][j] = D[0][j - 1] + 1
         for i in range(1, lenX + 1):
+                        
+            # Almacenamos en la posicion (i,j) el valor mínimo entre las tres operaciones
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
-                D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
-                D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
-                D[i - 2][j - 3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
+                D[i - 1][j - 1] + (x[i - 1] != y[j - 1])
             )
+
+            # Calculamos, teniendo en cuenta la restricción al avanzar 2 posiciones atrás,
+            # el valor con la transposición
+            if i > 1 and j > 1:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
+                )
+            
+            # Calculamos, teniendo en cuentra las restricciones al avanzar 3 posiciones atrás,
+            # el valor con la transposición y eliminación
+            if i > 2 and j > 1:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2]))
+                )
+            
+            # Calculamos, teniendo en cuentra las restricciones al avanzar 3 posiciones atrás,
+            # el valor con la transposición y eliminación
+            if i > 1 and j > 2:
+                D[i][j] = min(
+                    D[i][j],
+                    D[i - 2][j - 3] + 3 - ((x[i - 1] == y[j - 3]) and (x[i - 2] == y[j - 1]))
+                )
     
     camino=[]
     i=lenX
