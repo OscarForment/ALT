@@ -161,7 +161,7 @@ def damerau_restricted_edicion(x, y, threshold=None):
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (2-(x[i - 2] == y[j - 2] and x[i - 1]==y[j - 2]))
+                D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
             )
     # secuencia de operaciones de edición
     camino=[]
@@ -169,11 +169,11 @@ def damerau_restricted_edicion(x, y, threshold=None):
     j=lenY
     while i>0 and j>0: #Recorremos la matriz desde el final
         min_move=min(
-                D[i - 1][j],
-                D[i][j - 1],
-                D[i - 1][j - 1],
-                D[i - 2][j - 2]
-            )
+                    D[i - 1][j],
+                    D[i][j - 1],
+                    D[i - 1][j - 1],
+                    D[i - 2][j - 2]
+        )
         if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1: #comprobamos si es borrado teniendo en cuenta que siempre tiene coste 1
             camino.append((x[i-1],""))
             i-=1
@@ -181,7 +181,7 @@ def damerau_restricted_edicion(x, y, threshold=None):
             camino.append(("",y[j-1]))
             j-=1
         elif D[i-2][j-2]==min_move and D[i][j]==D[i-2][j-2]+1: #Comprobamos si es una transposición teniendo en cuenta que tiene coste 1
-            camino.append((x[i-2]+x[i-1],y[j-1]+y[i-2]))
+            camino.append((x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i-=2
             j-=2
         else:#sino pues es sustición
