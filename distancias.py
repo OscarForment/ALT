@@ -161,7 +161,7 @@ def damerau_restricted_edicion(x, y, threshold=None):
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] and x[i - 1]==y[j - 2])
+                D[i - 2][j - 2] + (2-(x[i - 2] == y[j - 2] and x[i - 1]==y[j - 2]))
             )
     # secuencia de operaciones de edición
     camino=[]
