@@ -151,7 +151,7 @@ def damerau_restricted_matriz(x, y, threshold=None):
                     D[i][j],
                     D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
                 )
-                
+
     return D[lenX, lenY]
 
 def damerau_restricted_edicion(x, y, threshold=None):
@@ -256,38 +256,7 @@ def damerau_intermediate_matriz(x, y, threshold=None):
     for j in range(1, lenY + 1):
         D[0][j] = D[0][j - 1] + 1
         for i in range(1, lenX + 1):
-            """
-            if i >2 and j>2:
-                D[i][j] = min(
-                    D[i - 1][j] + 1,
-                    D[i][j - 1] + 1,
-                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
-                    D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
-                    D[i - 2][j - 3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
-                )
-            elif i >1 and j>2:
-                D[i][j] = min(
-                    D[i - 1][j] + 1,
-                    D[i][j - 1] + 1,
-                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
-                    D[i - 2][j - 3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
-                )
-            elif i >1 and j>1:
-                D[i][j] = min(
-                    D[i - 1][j] + 1,
-                    D[i][j - 1] + 1,
-                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                    D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2])),
-                )
-            else:
-                D[i][j] = min(
-                    D[i - 1][j] + 1,
-                    D[i][j - 1] + 1,
-                    D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                )"""
-            
+                        
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
@@ -396,7 +365,7 @@ def damerau_intermediate(x, y, threshold=None):
     for i in range(1, lenX + 1): #Recorriendo la matriz verticalmente, pues la columna se mantiene constante
         cprev[i] = cprev[i - 1] + 1 #Se inicializan los elementos de la columna inicial
     for j in range (1, lenY+1): #Recorriendo la matriz horizontalmente
-        #cprev3,cprev2,cprev,ccurrent = cprev2,cprev,ccurrent,cprev3
+        
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
 
         parada = True
