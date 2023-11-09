@@ -291,9 +291,9 @@ def damerau_intermediate_edicion(x, y, threshold=None):
                 D[i-1][j],
                 D[i][j-1],
                 D[i-1][j-1],
-                D[i-2][j-2] + 1,
-                D[i-2][j-3] + 2,
-                D[i-3][j-2] + 2                
+                D[i-2][j-2],
+                D[i-2][j-3],
+                D[i-3][j-2]                
             )
         if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1: #comprobamos si es borrado
             camino.append((x[i-1],""))
@@ -305,34 +305,28 @@ def damerau_intermediate_edicion(x, y, threshold=None):
             camino.append((x[i-1],y[j-1]))
             i-=1
             j-=1
-        elif D[i-2][j-2] + 1 == min_move and D[i][j] == D[i-2][j-2] + 1: # comprobamos que es un intercambio
-            str1 = ""
-            str2 = ""
-            str1 += x[i-2]
-            str1 += x[i-1]
-            str2 += y[i-1]
-            str2 += y[i-2]
-            camino.append((str1,str2))
+        elif D[i-2][j-2] == min_move and D[i][j] == D[i-2][j-2] + 1: # comprobamos que es un intercambio
+            camino.append((x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i -= 2
             j -= 2
-        elif D[i-2][j-3] + 2 == min_move and D[i][j] == D[i-2][j-3] + 2: # comprobamos que es un intercambio
-            str1 = ""
-            str2 = ""
-            str1 += x[i-3]
-            str1 += x[i-2]
-            str2 += y[i-2]
-            str2 += y[i-3]
-            camino.append((str1,str2))
+        elif D[i-2][j-3]== min_move and D[i][j] == D[i-2][j-3] + 2: # comprobamos que es un intercambio
+            #str1 = ""
+            #str2 = ""
+            #str1 += x[i-3]
+            #str1 += x[i-2]
+            #str2 += y[i-2]
+            #str2 += y[i-3]
+            camino.append((x[i-3]+x[i-1],y[j-2]+y[j-3]))
             i -= 2
             j -= 3
-        elif D[i-3][j-2] + 2 == min_move and D[i][j] == D[i-3][j-2] + 2: # comprobamos que es un intercambio
-            str1 = ""
-            str2 = ""
-            str1 += x[i-2]
-            str1 += x[i-3]
-            str2 += y[i-3]
-            str2 += y[i-2]
-            camino.append((str1,str2))
+        elif D[i-3][j-2]== min_move and D[i][j] == D[i-3][j-2] + 2: # comprobamos que es un intercambio
+            #str1 = ""
+            #str2 = ""
+            #str1 += x[i-2]
+            #str1 += x[i-3]
+            #str2 += y[i-3]
+            #str2 += y[i-2]
+            camino.append((x[i-2]+x[i-3],y[j-3]+y[j-2]))
             i -= 3
             j -= 2
         while i>0: #por si solo quedan operaciones de borrado
@@ -359,11 +353,8 @@ def damerau_intermediate(x, y, threshold=None):
     for i in range(1, lenX + 1): #Recorriendo la matriz verticalmente, pues la columna se mantiene constante
         ccurrent[i] = ccurrent[i - 1] + 1 #Se inicializan los elementos de la columna inicial
     for j in range (1, lenY+1): #Recorriendo la matriz horizontalmente
-        cprev3,cprev2 = cprev2, cprev3
-        cprev2,cprev = cprev, cprev2
-        cprev,ccurrent = ccurrent,cprev
+        cprev3,cprev2,cprev,ccurrent = cprev2,cprev,ccurrent,cprev3
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
-        cprev[0] = cprev2[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
             ccurrent[i] = min(
             cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
