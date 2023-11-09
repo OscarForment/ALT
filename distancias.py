@@ -137,7 +137,7 @@ def damerau_restricted_matriz(x, y, threshold=None):
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] & x[i - 1]==y[j - 2])
+                D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
             )
     return D[lenX, lenY]
 
@@ -154,7 +154,7 @@ def damerau_restricted_edicion(x, y, threshold=None):
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] & x[i - 1]==y[j - 2])
+                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] and x[i - 1]==y[j - 2])
             )
     # secuencia de operaciones de edición
     camino=[]
@@ -195,29 +195,42 @@ def damerau_restricted_edicion(x, y, threshold=None):
 def damerau_restricted(x, y, threshold=None):
     # versión con reducción coste espacial y parada por threshold
     lenX, lenY = len(x), len(y)
+
     cprev = np.zeros(lenX+1,int)
     cprev2 = np.zeros(lenX+1,int)
     ccurrent = np.zeros(lenX+1,int)
+
     #Para ordenarnos mejor, ahora vamos a usar j e i tal y como se hace en los ejemplos
     for i in range(1, lenX + 1): #Recorriendo la matriz verticalmente, pues la columna se mantiene constante
-        ccurrent[i] = ccurrent[i - 1] + 1 #Se inicializan los elementos de la columna inicial
-    for j in range (1, lenY+1): #Recorriendo la matriz horizontalmente
-        cprev2,cprev = cprev, cprev2
-        cprev,ccurrent = ccurrent,cprev
+        cprev[i] = cprev[i - 1] + 1 #Se inicializan los elementos de la columna inicial
+    for j in range (1, lenY + 1): #Recorriendo la matriz horizontalmente
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
-        cprev[0] = cprev2[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
+        
+        if min(ccurrent) > threshold:
+            return threshold + 1
+        
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
-                ccurrent[j] = min(
-                cprev[j] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
-                ccurrent[j - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
-                cprev[j - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-                cprev2[j - 2] + ((x[i - 2] == y[j - 1]) & (x[i - 1] == y[j - 2])) #Si xi-1 == yj, yj-1 == xi
-                #Equivalente a [i -2] con cprev2, [j-2]
-            )
+            if i > 1 and j > 1 and x[i-2] == y[j-1] and x[i-1] == y[j-2]:
+                ccurrent[i] = min(
+                    cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
+                    ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
+                    cprev[i - 1] + (x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
+                    cprev2[i - 2] + ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])) #Si xi-1 == yj, yj-1 == xi
+                    #Equivalente a [i -2] con cprev2, [j-2]
+                )
+            else:
+                ccurrent[i] = min(
+                    cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
+                    ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
+                    cprev[i - 1] + (x[i - 1] != y[j - 1]) #Si xi != yj, se sumará 1
+                )               
 
-        if min(ccurrent)>threshold:
-            return threshold+1 
-    return ccurrent[lenX]
+            if min(ccurrent) > threshold:
+                return threshold + 1 
+        
+        cprev, ccurrent, cprev2 = ccurrent, cprev2, cprev
+    return cprev[lenX]
+    
 
 def damerau_intermediate_matriz(x, y, threshold=None):
     lenX, lenY = len(x), len(y)
@@ -231,10 +244,9 @@ def damerau_intermediate_matriz(x, y, threshold=None):
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] & x[i - 1]==y[j - 2]),
-                D[i - 3][j - 2] + 2*((x[i - 3] == y[j - 1]) & (x[i - 1] == y[j - 2])),
-                D[i - 2][j - 3] + 2*((x[i - 2] == y[j - 1]) & (x[i - 1] == y[j - 3])),
-
+                D[i - 2][j - 2] + (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]),
+                D[i - 3][j - 2] + (2 - (x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
+                D[i - 2][j - 3] + (2 - (x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3]))
             )
     return D[lenX, lenY]
 
@@ -256,9 +268,9 @@ def damerau_intermediate_edicion(x, y, threshold=None):
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
-                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] & x[i - 1]==y[j - 2]),
-                D[i - 3][j - 2] + 2*((x[i - 3] == y[j - 1]) & (x[i - 1] == y[j - 2])),
-                D[i - 2][j - 3] + 2*((x[i - 2] == y[j - 1]) & (x[i - 1] == y[j - 3])),
+                D[i - 2][j - 2] + (x[i - 2] == y[j - 2] and x[i - 1]==y[j - 2]),
+                D[i - 3][j - 2] + 2*((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
+                D[i - 2][j - 3] + 2*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
 
             )
     
@@ -344,14 +356,14 @@ def damerau_intermediate(x, y, threshold=None):
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
         cprev[0] = cprev2[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
-                ccurrent[j] = min(
-                cprev[j] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
-                ccurrent[j - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
-                cprev[j - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-                cprev2[j - 2] + 1*((x[i - 2] == y[j - 1]) & (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
+                ccurrent[i] = min(
+                cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
+                ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
+                cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
+                cprev2[i - 2] + 1*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
                 #Equivalente a [i -2] con cprev2, [j-2]
-                cprev3[j-2] + 2*((x[i - 3] == y[j - 1]) & (x[i - 1] == y[j - 2])),
-                cprev2[j-3] + 2*((x[i - 2] == y[j - 1]) & (x[i - 1] == y[j - 3])),
+                cprev3[i-2] + 2*((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
+                cprev2[i-3] + 2*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
 
             )
 
