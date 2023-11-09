@@ -215,7 +215,7 @@ def damerau_restricted(x, y, threshold=None):
                     cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
                     ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
                     cprev[i - 1] + (x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-                    cprev2[i - 2] + ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])) #Si xi-1 == yj, yj-1 == xi
+                    cprev2[i - 2] + 1 if (x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2]) else 10000 #Si xi-1 == yj, yj-1 == xi
                     #Equivalente a [i -2] con cprev2, [j-2]
                 )
             else:
@@ -361,17 +361,17 @@ def damerau_intermediate(x, y, threshold=None):
                     cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
                     ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
                     cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-                    cprev2[i - 2] + 1*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
+                    cprev2[i - 2] + 1 if ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])) else 10000, #Si xi-1 == yj, yj-1 == xi
                     #Equivalente a [i -2] con cprev2, [j-2]
-                    cprev3[i-2] + 2*((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
-                    cprev2[i-3] + 2*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
+                    cprev3[i-2] + 2 if ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])) else 10000,
+                    cprev2[i-3] + 2 if ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])) else 10000,
                     )
                 elif i > 1:
                     ccurrent[i] = min(
                     cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
                     ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
                     cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-                    cprev2[i - 2] + 1*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
+                    cprev2[i - 2] + 1 if ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])) else 1000, #Si xi-1 == yj, yj-1 == xi
                     )
                     #Equivalente a [i -2] con cprev2, [j-2]
                 else:
