@@ -362,11 +362,10 @@ def damerau_intermediate(x, y, threshold=None):
             cprev[i - 1] + (x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
             cprev2[i - 2] +2-((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
             #Equivalente a [i -2] con cprev2, [j-2]
-            cprev3[i-2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
-            cprev2[i-3] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
+            cprev3[i-2] + 3 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
+            cprev2[i-3] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
             )
-        if min(ccurrent)>threshold:
-            return threshold+1 
+        if min(ccurrent)>threshold: return threshold+1 
     return ccurrent[lenX]
 
 opcionesSpell = {
