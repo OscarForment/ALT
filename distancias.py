@@ -356,15 +356,29 @@ def damerau_intermediate(x, y, threshold=None):
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
         cprev[0] = cprev2[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
-                ccurrent[i] = min(
-                cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
-                ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
-                cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
-                cprev2[i - 2] + 1*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
-                #Equivalente a [i -2] con cprev2, [j-2]
-                cprev3[i-2] + 2*((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
-                cprev2[i-3] + 2*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
-
+                if i > 2:
+                    ccurrent[i] = min(
+                    cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
+                    ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
+                    cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
+                    cprev2[i - 2] + 1*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
+                    #Equivalente a [i -2] con cprev2, [j-2]
+                    cprev3[i-2] + 2*((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2])),
+                    cprev2[i-3] + 2*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 3])),
+                    )
+                elif i > 1:
+                    ccurrent[i] = min(
+                    cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
+                    ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
+                    cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
+                    cprev2[i - 2] + 1*((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2])), #Si xi-1 == yj, yj-1 == xi
+                    )
+                    #Equivalente a [i -2] con cprev2, [j-2]
+                else:
+                    ccurrent[i] = min(
+                    cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
+                    ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
+                    cprev[i - 1] + 1*(x[i - 1] != y[j - 1]), #Si xi != yj, se sumará 1
             )
 
         if min(ccurrent)>threshold:
