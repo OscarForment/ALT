@@ -83,22 +83,29 @@ def levenshtein_reduccion(x, y, threshold=None):
 def levenshtein(x, y, threshold):
     # completar versión reducción coste espacial y parada por threshold
     lenX, lenY = len(x), len(y)
+
     cprev = np.zeros(lenX+1,int)
     ccurrent = np.zeros(lenX+1,int)
+
     for j in range(1, lenX + 1):#inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
-        ccurrent[j] = ccurrent[j - 1] + 1
+        cprev[j] = cprev[j - 1] + 1
     for i in range (1,lenY+1):#se recorre toda la palabra final
-        cprev,ccurrent=ccurrent,cprev
-        ccurrent[0] = cprev[0] + 1 #en la fila 0 solo se puede hacer inserción que tiene coste 1
+        ccurrent[0] = cprev[0] + 1 #en la fila 0 solo se puede hacer inserción que tiene coste 1     
+        parada = True
+        if ccurrent[0] <= threshold: parada = False
+        elif ccurrent[0] == threshold and lenX - j == lenY - i: parada = False
         for j in range(1, lenX + 1):
             ccurrent[j] = min(
                 cprev[j] + 1,
                 ccurrent[j - 1] + 1,
-                cprev[j - 1] + (x[j - 1] != y[i - 1]),
+                cprev[j - 1] + (x[j - 1] != y[i - 1])
             )
-        if min(ccurrent)>threshold:
-            return threshold+1 
-    return ccurrent[lenX] # COMPLETAR Y REEMPLAZAR ESTA PARTE
+            if ccurrent[j] < threshold: parada = False
+            elif ccurrent[j] == threshold and lenX - j == lenY - i: parada = False
+            
+        if parada: return threshold+1
+        ccurrent, cprev = cprev, ccurrent
+    return cprev[lenX] # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 def levenshtein_cota_optimista(x, y, threshold):
     lenX, lenY = len(x), len(y)
@@ -203,14 +210,16 @@ def damerau_restricted(x, y, threshold=None):
     #Para ordenarnos mejor, ahora vamos a usar j e i tal y como se hace en los ejemplos
     for i in range(1, lenX + 1): #Recorriendo la matriz verticalmente, pues la columna se mantiene constante
         cprev[i] = cprev[i - 1] + 1 #Se inicializan los elementos de la columna inicial
+
     for j in range (1, lenY + 1): #Recorriendo la matriz horizontalmente
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
-        
-        if min(ccurrent) > threshold:
-            return threshold + 1
-        
+
+        parada = True
+        if ccurrent[0] <= threshold: parada = False
+        elif ccurrent[0] == threshold and lenX - i == lenY - j: parada = False
+
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
-            if i > 1 and j > 1 and x[i-2] == y[j-1] and x[i-1] == y[j-2]:
+            if i > 1 and j > 1:
                 ccurrent[i] = min(
                     cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
                     ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
@@ -223,11 +232,12 @@ def damerau_restricted(x, y, threshold=None):
                     cprev[i] + 1, #Equivalente al coste de D en [i-1] con cprev, [j]. Movimiento derecha
                     ccurrent[i - 1] + 1, #Equivalente al coste de D en [i] con ccurrent, [j-1]. Movimiento arriba
                     cprev[i - 1] + (x[i - 1] != y[j - 1]) #Si xi != yj, se sumará 1
-                )               
-
-            if min(ccurrent) > threshold:
-                return threshold + 1 
-        
+                ) 
+                            
+            if ccurrent[i] < threshold: parada = False
+            elif ccurrent[i] == threshold and lenX - i == lenY - j: parada = False
+            
+        if parada: return threshold + 1
         cprev, ccurrent, cprev2 = ccurrent, cprev2, cprev
     return cprev[lenX]
     

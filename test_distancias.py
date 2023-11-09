@@ -60,7 +60,7 @@ camarero  caramelos              4             4           3             3      
 ejemplo   campos                 5             5           3             3          5         3          5         3
 algoritmo algortimo              2             2           2             2          1         1          1         1
 algoritmo algortximo             3             3           3             3          3         3          2         2
-algoritmo lagortimo              4             4           3             3          2         2*          2         2
+algoritmo lagortimo              4             4           3             3          2         2          2         2
 algoritmo agaloritom             5             5           3             3          4         3          3         3
 algoritmo algormio               3             3           3             3          3         3          2         2
 acb       ba                     3             3           3             3          3         3          2         2
@@ -68,11 +68,11 @@ acb       ba                     3             3           3             3      
 (Cota 1)             levenshtein_m levenshtein_r levenshtein levenshtein_o damerau_rm damerau_r damerau_im damerau_i 
 camarero  caramelos              4             4           2             2          4         2          4         2
 ejemplo   campos                 5             5           2             2          5         2          5         2
-algoritmo algortimo              2             2           2             2          1         1*          1         1
+algoritmo algortimo              2             2           2             2          1         1          1         1
 algoritmo algortximo             3             3           2             2          3         2          2         2
 algoritmo lagortimo              4             4           2             2          2         2          2         2
 algoritmo agaloritom             5             5           2             2          4         2          3         2
 algoritmo algormio               3             3           2             2          3         2          2         2
-acb       ba                     3             3           2             2          3         2*          2         2
+acb       ba                     3             3           2             2          3         2          2         2
 
 """         
