@@ -5,11 +5,16 @@ def levenshtein_matriz(x, y, threshold=None):
     # invocar con él, en cuyo caso se ignora
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+
+    # Inicializamos la matriz de distancias (Eje X)
     for i in range(1, lenX + 1):
         D[i][0] = D[i - 1][0] + 1
+
+    # Inicializamos la matriz de distancias (Eje Y)
     for j in range(1, lenY + 1):
         D[0][j] = D[0][j - 1] + 1
         for i in range(1, lenX + 1):
+            # Almacenamos en la posicion (i,j) el valor mínimo entre las tres operaciones
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
@@ -21,8 +26,10 @@ def levenshtein_edicion(x, y, threshold=None):
     # a partir de la versión levenshtein_matriz
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+
     for i in range(1, lenX + 1):
         D[i][0] = D[i - 1][0] + 1
+
     for j in range(1, lenY + 1):
         D[0][j] = D[0][j - 1] + 1
         for i in range(1, lenX + 1):
@@ -31,30 +38,30 @@ def levenshtein_edicion(x, y, threshold=None):
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1]),
             )
-    #Ahora tenemos la matriz en D
+    # Ahora tenemos la matriz en D
     camino=[]
     i=lenX
     j=lenY
-    while i>0 and j>0: #Recorremos la matriz desde el final
+    while i>0 and j>0: # Recorremos la matriz desde el final
         min_move=min(
                 D[i - 1][j],
                 D[i][j - 1],
                 D[i - 1][j - 1],
             )
-        if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1: #comprobamos si es borrado teniendo en cuenta que siempre tiene coste 1
+        if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1:    # comprobamos si es borrado teniendo en cuenta que siempre tiene coste 1
             camino.append((x[i-1],""))
             i-=1
-        elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1: #comprobamos si es inserción teniendo en cuenta que siempre tiene coste 1
+        elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1:  # comprobamos si es inserción teniendo en cuenta que siempre tiene coste 1
             camino.append(("",y[j-1]))
             j-=1
-        else: #sino pues es sustición
+        else:   # sino pues es sustición
             camino.append((x[i-1],y[j-1]))
             i-=1
             j-=1
-    while i>0: #por si solo quedan operaciones de borrado
+    while i>0:  # por si solo quedan operaciones de borrado
         camino.append((x[i-1],""))
         i-=1
-    while j>0: #por si solo quedan operaciones de inserción
+    while j>0:  # por si solo quedan operaciones de inserción
         camino.append(("",y[j-1]))
         j-=1
        
@@ -66,11 +73,12 @@ def levenshtein_reduccion(x, y, threshold=None):
     lenX, lenY = len(x), len(y)
     cprev = np.zeros(lenX+1,int)
     ccurrent = np.zeros(lenX+1,int)
-    for j in range(1, lenX + 1):#inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
+
+    for j in range(1, lenX + 1):    # inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
         ccurrent[j] = ccurrent[j - 1] + 1
-    for i in range (1,lenY+1):#se recorre toda la palabra final
+    for i in range (1,lenY+1):      # se recorre toda la palabra final
         cprev,ccurrent=ccurrent,cprev
-        ccurrent[0] = cprev[0] + 1 #en la fila 0 solo se puede hacer inserción que tiene coste 1
+        ccurrent[0] = cprev[0] + 1  # en la fila 0 solo se puede hacer inserción que tiene coste 1
         for j in range(1, lenX + 1):
             ccurrent[j] = min(
                 cprev[j] + 1,
@@ -84,22 +92,30 @@ def levenshtein(x, y, threshold):
     # completar versión reducción coste espacial y parada por threshold
     lenX, lenY = len(x), len(y)
 
+    # Creamos dos vectores, el vector anterior y el actual
     cprev = np.zeros(lenX+1,int)
     ccurrent = np.zeros(lenX+1,int)
 
-    for j in range(1, lenX + 1):#inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
+    for j in range(1, lenX + 1):    # inicializamos el segundo vector como si fuera el primero puesto que se va a copiar
         cprev[j] = cprev[j - 1] + 1
-    for i in range (1,lenY+1):#se recorre toda la palabra final
-        ccurrent[0] = cprev[0] + 1 #en la fila 0 solo se puede hacer inserción que tiene coste 1     
+
+    for i in range (1,lenY+1):      # se recorre toda la palabra final
+        ccurrent[0] = cprev[0] + 1  # en la fila 0 solo se puede hacer inserción que tiene coste 1     
+
+        # Controlaremos cuando no se puede producir una parada por threshold mediante el booleano parada
         parada = True
         if ccurrent[0] <= threshold: parada = False
         elif ccurrent[0] == threshold and lenX - j == lenY - i: parada = False
+
         for j in range(1, lenX + 1):
+
+            # Añadiremos al vector el mínimo valor de las 3 operaciones
             ccurrent[j] = min(
                 cprev[j] + 1,
                 ccurrent[j - 1] + 1,
                 cprev[j - 1] + (x[j - 1] != y[i - 1])
             )
+
             if ccurrent[j] < threshold: parada = False
             elif ccurrent[j] == threshold and lenX - j == lenY - i: parada = False
             
@@ -109,43 +125,58 @@ def levenshtein(x, y, threshold):
 
 def levenshtein_cota_optimista(x, y, threshold):
     lenX, lenY = len(x), len(y)
-    diccionario = {}
+    diccionario = {}    # Creamos un diccionario para almacenar las frecuencias de cada letra
+
+    # Actualizamos el diccionario con valores positivos
     for key in x:
         if key in diccionario:
             diccionario[key] += 1
         else:
             diccionario[key] = 1
+
+    # Actualizamos el diccionario con valores negativos
     for key in y:
         if key in diccionario:
             diccionario[key] -= 1
         else:
             diccionario[key] = -1
     sumPos, sumNeg = 0, 0
+
+    # Hacemos la suma de los valores positivos y negativos
     for clave in diccionario:
         if diccionario[clave] < 0:
             sumNeg += diccionario[clave]
         else:
             sumPos += diccionario[clave]
+
+    # Chequeamos el threshold
     if max(sumPos, abs(sumNeg)) <= threshold:
         return levenshtein(x,y, threshold)
     else:
         return threshold + 1
-         # COMPLETAR Y REEMPLAZAR ESTA PARTE
 
 def damerau_restricted_matriz(x, y, threshold=None):
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+
     for i in range(1, lenX + 1):
+        # Inicializamos la matriz de distancias (Eje X)
         D[i][0] = D[i - 1][0] + 1
+
     for j in range(1, lenY + 1):
+        # Inicializamos la matriz de distancias (Eje Y)
         D[0][j] = D[0][j - 1] + 1
+
         for i in range(1, lenX + 1):
+            # Almacenamos en la posicion (i,j) el valor mínimo entre las tres operaciones
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1])
             )
 
+            # Calculamos, teniendo en cuenta la restricción al avanzar 2 posiciones atrás,
+            # el valor con la transposición
             if i > 1 and j > 1:
                 D[i][j] = min(
                     D[i][j],
@@ -158,6 +189,7 @@ def damerau_restricted_edicion(x, y, threshold=None):
     # partiendo de damerau_restricted_matriz añadir recuperar
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+    
     for i in range(1, lenX + 1):
         D[i][0] = D[i - 1][0] + 1
     for j in range(1, lenY + 1):
@@ -173,32 +205,32 @@ def damerau_restricted_edicion(x, y, threshold=None):
     camino=[]
     i=lenX
     j=lenY
-    while i>0 and j>0: #Recorremos la matriz desde el final
+    while i>0 and j>0:  # Recorremos la matriz desde el final
         min_move=min(
                     D[i - 1][j],
                     D[i][j - 1],
                     D[i - 1][j - 1],
                     D[i - 2][j - 2]
         )
-        if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1: #comprobamos si es borrado teniendo en cuenta que siempre tiene coste 1
+        if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1:        # comprobamos si es borrado teniendo en cuenta que siempre tiene coste 1
             camino.append((x[i-1],""))
             i-=1
-        elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1: #comprobamos si es inserción teniendo en cuenta que siempre tiene coste 1
+        elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1:      # comprobamos si es inserción teniendo en cuenta que siempre tiene coste 1
             camino.append(("",y[j-1]))
             j-=1
-        elif D[i-2][j-2]==min_move and D[i][j]==D[i-2][j-2]+1: #Comprobamos si es una transposición teniendo en cuenta que tiene coste 1
+        elif D[i-2][j-2]==min_move and D[i][j]==D[i-2][j-2]+1:  # Comprobamos si es una transposición teniendo en cuenta que tiene coste 1
             camino.append((x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i-=2
             j-=2
-        else:#sino pues es sustición
+        else:   # sino pues es sustición
             camino.append((x[i-1],y[j-1]))
             i-=1
             j-=1
             
-    while i>0: #por si solo quedan operaciones de borrado
+    while i>0:  # por si solo quedan operaciones de borrado
         camino.append((x[i-1],""))
         i-=1
-    while j>0: #por si solo quedan operaciones de inserción
+    while j>0:  # por si solo quedan operaciones de inserción
         camino.append(("",y[j-1]))
         j-=1
        
@@ -220,6 +252,7 @@ def damerau_restricted(x, y, threshold=None):
     for j in range (1, lenY + 1): #Recorriendo la matriz horizontalmente
         ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
 
+        # Controlaremos cuando no se puede producir una parada por threshold mediante el booleano parada
         parada = True
         if ccurrent[0] <= threshold: parada = False
         elif ccurrent[0] == threshold and lenX - i == lenY - j: parada = False
@@ -251,30 +284,41 @@ def damerau_restricted(x, y, threshold=None):
 def damerau_intermediate_matriz(x, y, threshold=None):
     lenX, lenY = len(x), len(y)
     D = np.zeros((lenX + 1, lenY + 1), dtype=int)
+
+    # Inicializamos la matriz de distancias (Eje X)
     for i in range(1, lenX + 1):
         D[i][0] = D[i - 1][0] + 1
+
+    # Inicializamos la matriz de distancias (Eje Y)
     for j in range(1, lenY + 1):
         D[0][j] = D[0][j - 1] + 1
         for i in range(1, lenX + 1):
                         
+            # Almacenamos en la posicion (i,j) el valor mínimo entre las tres operaciones
             D[i][j] = min(
                 D[i - 1][j] + 1,
                 D[i][j - 1] + 1,
                 D[i - 1][j - 1] + (x[i - 1] != y[j - 1])
             )
 
+            # Calculamos, teniendo en cuenta la restricción al avanzar 2 posiciones atrás,
+            # el valor con la transposición
             if i > 1 and j > 1:
                 D[i][j] = min(
                     D[i][j],
                     D[i - 2][j - 2] + (2 - (x[i - 2] == y[j - 1] and x[i - 1]==y[j - 2]))
                 )
             
+            # Calculamos, teniendo en cuentra las restricciones al avanzar 3 posiciones atrás,
+            # el valor con la transposición y eliminación
             if i > 2 and j > 1:
                 D[i][j] = min(
                     D[i][j],
                     D[i - 3][j - 2] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2]))
                 )
             
+            # Calculamos, teniendo en cuentra las restricciones al avanzar 3 posiciones atrás,
+            # el valor con la transposición y eliminación
             if i > 1 and j > 2:
                 D[i][j] = min(
                     D[i][j],
@@ -318,40 +362,38 @@ def damerau_intermediate_edicion(x, y, threshold=None):
                 D[i-2][j-3],
                 D[i-3][j-2]                
         )
-        if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1: #comprobamos si es borrado
+        if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1:    # comprobamos si es borrado
             camino.append((x[i-1],""))
             i-=1
-        elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1: #comprobamos si es inserción
+        elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1:  # comprobamos si es inserción
             camino.append(("",y[j-1]))
             j-=1
-        elif D[i-2][j-2] == min_move and D[i][j] == D[i-2][j-2] + 1: # comprobamos que es un intercambio
+        elif D[i-2][j-2] == min_move and D[i][j] == D[i-2][j-2] + 1:    # comprobamos que es un intercambio
             camino.append((x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i -= 2
             j -= 2
-        elif D[i-2][j-3]== min_move and D[i][j] == D[i-2][j-3] + 2: # comprobamos que es un intercambio
+        elif D[i-2][j-3]== min_move and D[i][j] == D[i-2][j-3] + 2:     # comprobamos que es un intercambio
             camino.append((x[i-2]+x[i-1],y[j-3]+y[j-2]+y[j-1]))
             i -= 2
             j -= 3
-        elif D[i-3][j-2]== min_move and D[i][j] == D[i-3][j-2] + 2: # comprobamos que es un intercambio
+        elif D[i-3][j-2]== min_move and D[i][j] == D[i-3][j-2] + 2:     # comprobamos que es un intercambio
             camino.append((x[i-3]+x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i -= 3
             j -= 2
-        else: #comprobamos que es sustición
+        else:   # comprobamos que es sustición
             camino.append((x[i-1],y[j-1]))
             i-=1
             j-=1
 
-    while i>0: #por si solo quedan operaciones de borrado
+    while i>0:  # por si solo quedan operaciones de borrado
         camino.append((x[i-1],""))
         i-=1
-    while j>0: #por si solo quedan operaciones de inserción
+    while j>0:  # por si solo quedan operaciones de inserción
         camino.append(("",y[j-1]))
         j-=1
        
     camino.reverse()
     return D[lenX, lenY],camino
-
-    # completar versión Damerau-Levenstein intermedia con matriz
    
     
 def damerau_intermediate(x, y, threshold=None):
@@ -361,37 +403,45 @@ def damerau_intermediate(x, y, threshold=None):
     cprev2 = np.zeros(lenX+1,int)
     cprev3 = np.zeros(lenX+1,int)
     ccurrent = np.zeros(lenX+1,int)
-    #Para ordenarnos mejor, ahora vamos a usar j e i tal y como se hace en los ejemplos
-    for i in range(1, lenX + 1): #Recorriendo la matriz verticalmente, pues la columna se mantiene constante
-        cprev[i] = cprev[i - 1] + 1 #Se inicializan los elementos de la columna inicial
-    for j in range (1, lenY+1): #Recorriendo la matriz horizontalmente
+    # Para ordenarnos mejor, ahora vamos a usar j e i tal y como se hace en los ejemplos
+    for i in range(1, lenX + 1):    # Recorriendo la matriz verticalmente, pues la columna se mantiene constante
+        cprev[i] = cprev[i - 1] + 1 # Se inicializan los elementos de la columna inicial
+    for j in range (1, lenY+1):     # Recorriendo la matriz horizontalmente
         
-        ccurrent[0] = cprev[0] + 1 #Se inicializa la primera fila, simulando el movimiento horizontal
+        ccurrent[0] = cprev[0] + 1  # Se inicializa la primera fila, simulando el movimiento horizontal
 
+        # Controlaremos cuando no se puede producir una parada por threshold mediante el booleano parada
         parada = True
         if ccurrent[0] <= threshold: parada = False
         elif ccurrent[0] == threshold and lenX - i == lenY - j: parada = False
 
         for i in range(1, lenX + 1): #Se recorre en vertical y horizontal
             
+            # Añadiremos al vector el mínimo valor de las 3 operaciones
             ccurrent[i] = min(
                 cprev[i] + 1,
                 ccurrent[i - 1] + 1,
                 cprev[i - 1] + (x[i - 1] != y[j - 1])
             )
 
+            # Calculamos, teniendo en cuenta la restricción al avanzar 2 posiciones atrás,
+            # el valor con la transposición
             if i > 1 and j > 1:
                 ccurrent[i] = min(
                     ccurrent[i],
                     cprev2[i - 2] + 2 - ((x[i - 2] == y[j - 1]) and (x[i - 1] == y[j - 2]))
                 )
 
+            # Calculamos, teniendo en cuentra las restricciones al avanzar 3 posiciones atrás,
+            # el valor con la transposición y eliminación
             if i > 2 and j > 1:
                 ccurrent[i] = min(
                     ccurrent[i],
                     cprev2[i - 3] + 3 - ((x[i - 3] == y[j - 1]) and (x[i - 1] == y[j - 2]))
                 )
 
+            # Calculamos, teniendo en cuentra las restricciones al avanzar 3 posiciones atrás,
+            # el valor con la transposición y eliminación
             if i > 1 and j > 2:
                 ccurrent[i] = min(
                     ccurrent[i],
