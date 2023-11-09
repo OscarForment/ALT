@@ -294,16 +294,12 @@ def damerau_intermediate_edicion(x, y, threshold=None):
                 D[i-2][j-2],
                 D[i-2][j-3],
                 D[i-3][j-2]                
-            )
+        )
         if D[i-1][j]==min_move and D[i][j]==D[i-1][j]+1: #comprobamos si es borrado
             camino.append((x[i-1],""))
             i-=1
         elif D[i][j-1]==min_move and D[i][j]==D[i][j-1]+1: #comprobamos si es inserción
             camino.append(("",y[j-1]))
-            j-=1
-        elif D[i-1][j-1] == min_move and D[i][j] == D[i-1][j-1]: #comprobamos que es sustición
-            camino.append((x[i-1],y[j-1]))
-            i-=1
             j-=1
         elif D[i-2][j-2] == min_move and D[i][j] == D[i-2][j-2] + 1: # comprobamos que es un intercambio
             camino.append((x[i-2]+x[i-1],y[j-2]+y[j-1]))
@@ -316,7 +312,7 @@ def damerau_intermediate_edicion(x, y, threshold=None):
             #str1 += x[i-2]
             #str2 += y[i-2]
             #str2 += y[i-3]
-            camino.append((x[i-3]+x[i-1],y[j-2]+y[j-3]))
+            camino.append((x[i-2]+x[i-1],y[j-3]+y[j-2]+y[j-1]))
             i -= 2
             j -= 3
         elif D[i-3][j-2]== min_move and D[i][j] == D[i-3][j-2] + 2: # comprobamos que es un intercambio
@@ -326,15 +322,20 @@ def damerau_intermediate_edicion(x, y, threshold=None):
             #str1 += x[i-3]
             #str2 += y[i-3]
             #str2 += y[i-2]
-            camino.append((x[i-2]+x[i-3],y[j-3]+y[j-2]))
+            camino.append((x[i-3]+x[i-2]+x[i-1],y[j-2]+y[j-1]))
             i -= 3
             j -= 2
-        while i>0: #por si solo quedan operaciones de borrado
-            camino.append((x[i-1],""))
+        else: #comprobamos que es sustición
+            camino.append((x[i-1],y[j-1]))
             i-=1
-        while j>0: #por si solo quedan operaciones de inserción
-            camino.append(("",y[j-1]))
             j-=1
+
+    while i>0: #por si solo quedan operaciones de borrado
+        camino.append((x[i-1],""))
+        i-=1
+    while j>0: #por si solo quedan operaciones de inserción
+        camino.append(("",y[j-1]))
+        j-=1
        
     camino.reverse()
     return D[lenX, lenY],camino
